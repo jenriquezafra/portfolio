@@ -218,16 +218,21 @@ $$\Sigma_{t_k}$$
 # 9. Performance Metrics
 
 - Portfolio return:
+
 $$R_{p,t} = w_t^T r_{t}$$
 
 - Sharpe ratio:
+
 $$S = \frac{E[R_p]}{\sqrt{Var(R_p)}}$$
 
 - Maximum drawdown
+
 - Turnover:
+
 $$TO_t = \sum_i |w_{i,t} - w_{i,t-1}|$$
 
 - Information Coefficient (IC):
+
 $$IC_t = Corr(\hat{\mu}_{t}, r_{t+H})$$
 
 ---
