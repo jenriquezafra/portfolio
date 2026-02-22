@@ -148,6 +148,7 @@ $$
 $$
 
 where $\Omega(\theta)$ is regularization.
+
 ---
 
 # 6. Portfolio Construction with ML Predictions
@@ -200,19 +201,13 @@ Walk-forward procedure:
 For each rebalancing date $t_k$:
 
 1. Train model on:
-$$
-[t_k - T_{\text{train}}, \, t_k]
-$$
+$$[t_k - T_{\text{train}}, \, t_k]$$
 
-2. Predict:
-$$
-\hat{\mu}_{t_k}
-$$
+2. Predict: 
+$$\hat{\mu}_{t_k}$$
 
 3. Estimate covariance:
-$$
-\Sigma_{t_k}
-$$
+$$\Sigma_{t_k}$$
 
 4. Solve optimization problem
 
@@ -223,25 +218,17 @@ $$
 # 9. Performance Metrics
 
 - Portfolio return:
-$$
-R_{p,t} = w_t^T r_{t}
-$$
+$$R_{p,t} = w_t^T r_{t}$$
 
 - Sharpe ratio:
-$$
-S = \frac{E[R_p]}{\sqrt{Var(R_p)}}
-$$
+$$S = \frac{E[R_p]}{\sqrt{Var(R_p)}}$$
 
 - Maximum drawdown
 - Turnover:
-$$
-TO_t = \sum_i |w_{i,t} - w_{i,t-1}|
-$$
+$$TO_t = \sum_i |w_{i,t} - w_{i,t-1}|$$
 
 - Information Coefficient (IC):
-$$
-IC_t = Corr(\hat{\mu}_{t}, r_{t+H})
-$$
+$$IC_t = Corr(\hat{\mu}_{t}, r_{t+H})$$
 
 ---
 
