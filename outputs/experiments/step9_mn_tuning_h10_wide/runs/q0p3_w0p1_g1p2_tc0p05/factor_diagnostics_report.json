@@ -1,0 +1,53 @@
+{
+  "checks": {
+    "ex_ante_max_abs_ok": true,
+    "ex_ante_mean_abs_ok": false,
+    "ex_post_beta_abs_ok": true,
+    "ex_post_beta_yearly_abs_ok": true,
+    "ex_post_r2_ok": false
+  },
+  "context": {
+    "allocation_method": "score_over_vol",
+    "end_date": "2026-02-20",
+    "n_rebalances": 220,
+    "portfolio_mode": "market_neutral",
+    "sharpe_ratio": 0.4178764048293445,
+    "start_date": "2017-05-10",
+    "weekly_sharpe_ratio": 0.43108239889729333
+  },
+  "factor_names": [
+    "nasdaq_proxy",
+    "growth_proxy"
+  ],
+  "generated_at_utc": "2026-02-22T20:26:05.767721+00:00",
+  "metrics": {
+    "full_sample": {
+      "ex_ante_max_abs_worst": 0.264891558894697,
+      "ex_ante_mean_abs_max": 0.06322614905285878,
+      "ex_post_beta_abs_l1": 0.13112174059049067,
+      "ex_post_beta_abs_max": 0.07874510019124986,
+      "ex_post_r2": 0.2668370775488358
+    },
+    "yearly": {
+      "ex_post_beta_yearly_abs_max": 0.16473580994183282,
+      "min_obs_filter": 60,
+      "yearly_sign_flip_counts": {
+        "growth_proxy": 1,
+        "nasdaq_proxy": 1
+      }
+    }
+  },
+  "recommendations": [
+    "Reduce average ex-ante factor exposure: tighten neutralization target or increase beta lookback.",
+    "High ex-post R2 to factors: strategy may still be driven by market/style beta."
+  ],
+  "status": "warning",
+  "thresholds": {
+    "ex_ante_max_abs_max": 0.35,
+    "ex_ante_mean_abs_max": 0.05,
+    "ex_post_beta_abs_max": 0.15,
+    "ex_post_beta_yearly_abs_max": 0.35,
+    "ex_post_r2_max": 0.15,
+    "yearly_min_obs": 60.0
+  }
+}

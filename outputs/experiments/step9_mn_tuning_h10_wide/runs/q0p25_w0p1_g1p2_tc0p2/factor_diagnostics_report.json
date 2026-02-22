@@ -1,0 +1,54 @@
+{
+  "checks": {
+    "ex_ante_max_abs_ok": false,
+    "ex_ante_mean_abs_ok": false,
+    "ex_post_beta_abs_ok": true,
+    "ex_post_beta_yearly_abs_ok": true,
+    "ex_post_r2_ok": true
+  },
+  "context": {
+    "allocation_method": "score_over_vol",
+    "end_date": "2026-02-20",
+    "n_rebalances": 220,
+    "portfolio_mode": "market_neutral",
+    "sharpe_ratio": 0.2910842321872909,
+    "start_date": "2017-05-10",
+    "weekly_sharpe_ratio": 0.3056640235491345
+  },
+  "factor_names": [
+    "nasdaq_proxy",
+    "growth_proxy"
+  ],
+  "generated_at_utc": "2026-02-22T20:22:39.492382+00:00",
+  "metrics": {
+    "full_sample": {
+      "ex_ante_max_abs_worst": 0.5359769201758058,
+      "ex_ante_mean_abs_max": 0.06844083572340946,
+      "ex_post_beta_abs_l1": 0.09225675794528466,
+      "ex_post_beta_abs_max": 0.06485145688126538,
+      "ex_post_r2": 0.09788023817395475
+    },
+    "yearly": {
+      "ex_post_beta_yearly_abs_max": 0.26055153057227054,
+      "min_obs_filter": 60,
+      "yearly_sign_flip_counts": {
+        "growth_proxy": 5,
+        "nasdaq_proxy": 1
+      }
+    }
+  },
+  "recommendations": [
+    "Reduce average ex-ante factor exposure: tighten neutralization target or increase beta lookback.",
+    "Cap extreme ex-ante factor spikes: review quantiles/weight caps and turnover cap interaction.",
+    "Frequent yearly beta sign flips in: growth_proxy."
+  ],
+  "status": "warning",
+  "thresholds": {
+    "ex_ante_max_abs_max": 0.35,
+    "ex_ante_mean_abs_max": 0.05,
+    "ex_post_beta_abs_max": 0.15,
+    "ex_post_beta_yearly_abs_max": 0.35,
+    "ex_post_r2_max": 0.15,
+    "yearly_min_obs": 60.0
+  }
+}

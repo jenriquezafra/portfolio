@@ -7,6 +7,8 @@ model:
     - vol_20d
     - momentum_20_60
     - momentum_x_vol_20
+    - mkt_nasdaq_proxy_lag1
+    - mkt_growth_proxy_lag1
   params:
     n_estimators: 300
     max_depth: 4

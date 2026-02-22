@@ -1,0 +1,20 @@
+{
+  "account_cash": 3601.7249450683594,
+  "account_equity": 106696.55735778809,
+  "allow_shorting": true,
+  "apply": false,
+  "broker": "paper",
+  "broker_order_ids": [],
+  "max_gross_exposure": 1.0,
+  "max_net_exposure": 1.0,
+  "max_position_weight": 0.2,
+  "min_cash_buffer": 0.02,
+  "mode": "paper",
+  "n_orders": 30,
+  "n_symbols": 39,
+  "orders_file": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/execution/rebalance_2026-01-09_20260222_192006_orders.csv",
+  "portfolio_mode": "market_neutral",
+  "portfolio_turnover_estimate": 0.25,
+  "rebalance_date": "2026-01-09",
+  "timestamp_utc": "2026-02-22T19:20:06+00:00"
+}

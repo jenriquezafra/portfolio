@@ -1,0 +1,32 @@
+[
+  {
+    "turnover_cap": 0.25,
+    "annualized_return": 0.008626384574754953,
+    "annualized_volatility": 0.037000493483323946,
+    "sharpe_ratio": 0.23314241953672452,
+    "weekly_sharpe_ratio": 0.236854609758712,
+    "max_drawdown": -0.05181135788846092,
+    "average_turnover": 0.25,
+    "total_cost_bps_paid": 255.5,
+    "average_gross_exposure": 0.4914425040200736,
+    "average_net_exposure": 1.4035219904093175e-19,
+    "ex_post_factor_beta_l1": 0.04014315897138369,
+    "diag_status": "pass",
+    "diag_checks_ok": true
+  },
+  {
+    "turnover_cap": 0.35,
+    "annualized_return": 0.009859455312253518,
+    "annualized_volatility": 0.04127334251438642,
+    "sharpe_ratio": 0.23888192018412036,
+    "weekly_sharpe_ratio": 0.24496254487691924,
+    "max_drawdown": -0.05657505075305136,
+    "average_turnover": 0.35000000000000003,
+    "total_cost_bps_paid": 357.69999999999993,
+    "average_gross_exposure": 0.5583650643670315,
+    "average_net_exposure": -7.277521431752016e-20,
+    "ex_post_factor_beta_l1": 0.04190638754538459,
+    "diag_status": "pass",
+    "diag_checks_ok": true
+  }
+]

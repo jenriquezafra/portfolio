@@ -1,5 +1,5 @@
 {
-  "avg_validation_ic_spearman": 0.012727871106552173,
+  "avg_validation_ic_spearman": 0.036005103465667786,
   "date_end": "2026-01-09",
   "date_start": "2017-05-16",
   "features": [
@@ -8,7 +8,9 @@
     "ret_20d",
     "vol_20d",
     "momentum_20_60",
-    "momentum_x_vol_20"
+    "momentum_x_vol_20",
+    "mkt_nasdaq_proxy_lag1",
+    "mkt_growth_proxy_lag1"
   ],
   "horizon_days": 15,
   "model_params": {
@@ -20,18 +22,18 @@
     "random_state": 42,
     "subsample": 0.8
   },
-  "n_predictions": 3261,
+  "n_predictions": 3650,
   "n_rebalances": 146,
-  "oos_cs_ic_ir": -0.04469718089076122,
-  "oos_cs_ic_mean": -0.011846221342688949,
-  "oos_cs_ic_median": -0.01383773258656399,
-  "oos_cs_ic_positive_rate": 0.4755244755244755,
-  "oos_cs_ic_std": 0.2650328523322492,
-  "oos_ic_spearman": -0.010694620586487626,
-  "oos_top_bottom_mean": -0.0064171669846267215,
-  "oos_top_bottom_median": -0.008559079329857036,
-  "oos_top_bottom_positive_rate": 0.4657534246575342,
-  "oos_top_bottom_tstat": -1.1054827400125127,
+  "oos_cs_ic_ir": 0.15929213882907867,
+  "oos_cs_ic_mean": 0.0416576416824522,
+  "oos_cs_ic_median": 0.04788203817637281,
+  "oos_cs_ic_positive_rate": 0.5586206896551724,
+  "oos_cs_ic_std": 0.26151724742142535,
+  "oos_ic_spearman": 0.03110064083924918,
+  "oos_top_bottom_mean": 0.00738282268148395,
+  "oos_top_bottom_median": 0.011565316895723354,
+  "oos_top_bottom_positive_rate": 0.5958904109589042,
+  "oos_top_bottom_tstat": 1.8848506485695113,
   "rebalance_every_n_days": 15,
   "rebalance_frequency": "every_n_days",
   "target_column": "fwd_return_15d_resid",

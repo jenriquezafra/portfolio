@@ -84,7 +84,26 @@ class PaperBroker(BrokerBase):
             .groupby("ticker", as_index=False)
             .tail(1)[["ticker", "adj_close"]]
         )
-        return {row["ticker"]: float(row["adj_close"]) for _, row in last.iterrows() if float(row["adj_close"]) > 0}
+        prices = {row["ticker"]: float(row["adj_close"]) for _, row in last.iterrows() if float(row["adj_close"]) > 0}
+
+        # Fallback for symbols held in paper state but no longer present in prices parquet
+        # (e.g., universe changed). Use avg_cost only to allow position unwind.
+        missing = [sym for sym in symbols if sym not in prices]
+        if missing:
+            state = self._read_state()
+            pos_raw = state.get("positions", {})
+            for sym in missing:
+                pos = pos_raw.get(sym)
+                if not isinstance(pos, dict):
+                    continue
+                qty = float(pos.get("quantity", 0.0) or 0.0)
+                avg_cost = pos.get("avg_cost")
+                if abs(qty) <= 1e-12 or avg_cost is None:
+                    continue
+                px = float(avg_cost)
+                if px > 0:
+                    prices[sym] = px
+        return prices
 
     def get_account_snapshot(self) -> AccountSnapshot:
         self._ensure_connected()

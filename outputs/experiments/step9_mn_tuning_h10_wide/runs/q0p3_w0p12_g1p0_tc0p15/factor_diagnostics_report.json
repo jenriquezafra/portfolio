@@ -1,0 +1,53 @@
+{
+  "checks": {
+    "ex_ante_max_abs_ok": true,
+    "ex_ante_mean_abs_ok": true,
+    "ex_post_beta_abs_ok": true,
+    "ex_post_beta_yearly_abs_ok": true,
+    "ex_post_r2_ok": true
+  },
+  "context": {
+    "allocation_method": "score_over_vol",
+    "end_date": "2026-02-20",
+    "n_rebalances": 220,
+    "portfolio_mode": "market_neutral",
+    "sharpe_ratio": 0.07975461144556234,
+    "start_date": "2017-05-10",
+    "weekly_sharpe_ratio": 0.08150480918362929
+  },
+  "factor_names": [
+    "nasdaq_proxy",
+    "growth_proxy"
+  ],
+  "generated_at_utc": "2026-02-22T20:27:15.903913+00:00",
+  "metrics": {
+    "full_sample": {
+      "ex_ante_max_abs_worst": 0.22470416294217677,
+      "ex_ante_mean_abs_max": 0.036998713221110355,
+      "ex_post_beta_abs_l1": 0.056677021683598894,
+      "ex_post_beta_abs_max": 0.03871022248221934,
+      "ex_post_r2": 0.0661023041348433
+    },
+    "yearly": {
+      "ex_post_beta_yearly_abs_max": 0.11093889510916,
+      "min_obs_filter": 60,
+      "yearly_sign_flip_counts": {
+        "growth_proxy": 5,
+        "nasdaq_proxy": 3
+      }
+    }
+  },
+  "recommendations": [
+    "Factor diagnostics are within configured thresholds.",
+    "Frequent yearly beta sign flips in: growth_proxy, nasdaq_proxy."
+  ],
+  "status": "pass",
+  "thresholds": {
+    "ex_ante_max_abs_max": 0.35,
+    "ex_ante_mean_abs_max": 0.05,
+    "ex_post_beta_abs_max": 0.15,
+    "ex_post_beta_yearly_abs_max": 0.35,
+    "ex_post_r2_max": 0.15,
+    "yearly_min_obs": 60.0
+  }
+}

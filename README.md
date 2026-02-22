@@ -277,7 +277,10 @@ portfolio/
     02_train.py
     03_backtest.py
     04_rebalance.py
-    05_run_all.py
+    05_report.py
+    06_compare_portfolio_modes.py
+    07_sweep_target_holding.py
+    08_tune_market_neutral.py
   src/
     data.py
     features.py
@@ -334,6 +337,12 @@ Apply orders to configured broker:
 
 ```bash
 python scripts/04_rebalance.py --apply
+```
+
+Generate factor diagnostics report:
+
+```bash
+python scripts/05_report.py
 ```
 
 Key behavior:

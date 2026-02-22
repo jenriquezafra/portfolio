@@ -98,18 +98,68 @@ def _compute_current_weights(
 
 
 def _validate_weights(weights: pd.Series, max_position_weight: float, max_gross_exposure: float) -> None:
-    if (weights < -1e-12).any():
-        bad = weights[weights < -1e-12]
-        raise ValueError(f"Negative target weights are not allowed: {bad.to_dict()}")
+    return _validate_weights_with_mode(
+        weights=weights,
+        max_position_weight=max_position_weight,
+        max_gross_exposure=max_gross_exposure,
+        allow_short=False,
+        max_net_exposure=1.0,
+    )
 
-    if float(weights.max()) > float(max_position_weight) + 1e-9:
-        raise ValueError(
-            f"Target weight exceeds max_position_weight={max_position_weight:.4f}. Max found: {float(weights.max()):.4f}"
-        )
+
+def _validate_weights_with_mode(
+    weights: pd.Series,
+    max_position_weight: float,
+    max_gross_exposure: float,
+    allow_short: bool,
+    max_net_exposure: float,
+) -> None:
+    if allow_short:
+        if float(weights.abs().max()) > float(max_position_weight) + 1e-9:
+            raise ValueError(
+                f"Target abs(weight) exceeds max_position_weight={max_position_weight:.4f}. "
+                f"Max found: {float(weights.abs().max()):.4f}"
+            )
+        if abs(float(weights.sum())) > float(max_net_exposure) + 1e-9:
+            raise ValueError(
+                f"Net exposure {float(weights.sum()):.4f} exceeds max_net_exposure={max_net_exposure:.4f}"
+            )
+    else:
+        if (weights < -1e-12).any():
+            bad = weights[weights < -1e-12]
+            raise ValueError(f"Negative target weights are not allowed: {bad.to_dict()}")
+        if float(weights.max()) > float(max_position_weight) + 1e-9:
+            raise ValueError(
+                f"Target weight exceeds max_position_weight={max_position_weight:.4f}. "
+                f"Max found: {float(weights.max()):.4f}"
+            )
 
     gross = float(weights.abs().sum())
     if gross > float(max_gross_exposure) + 1e-9:
         raise ValueError(f"Gross exposure {gross:.4f} exceeds max_gross_exposure={max_gross_exposure:.4f}")
+
+
+def _prepare_target_weights(
+    target_weights_raw: pd.Series,
+    symbols: list[str],
+    portfolio_mode: str,
+    min_cash_buffer: float,
+) -> pd.Series:
+    target = target_weights_raw.reindex(symbols).fillna(0.0).astype(float)
+    investable_fraction = max(0.0, 1.0 - float(min_cash_buffer))
+
+    if portfolio_mode == "long_only":
+        total = float(target.sum())
+        if total > 1e-12:
+            target = target / total
+        target = target.clip(lower=0.0) * investable_fraction
+        return target
+
+    if portfolio_mode == "market_neutral":
+        # Keep signed exposures from backtest and only scale if cash buffer is requested.
+        return target * investable_fraction
+
+    raise ValueError("Unsupported portfolio mode. Expected `long_only` or `market_neutral`.")
 
 
 def _compute_target_shares(
@@ -200,6 +250,14 @@ def main() -> None:
 
     execution_section = config_execution.get("execution", {})
     risk_controls = config_execution.get("risk_controls", {})
+    backtest_section = config_backtest.get("backtest", {})
+    if not isinstance(backtest_section, dict):
+        raise ValueError("Missing `backtest` section in config_backtest.yaml")
+    portfolio_cfg = backtest_section.get("portfolio", {})
+    if not isinstance(portfolio_cfg, dict):
+        raise ValueError("`backtest.portfolio` must be a mapping.")
+    portfolio_mode = str(portfolio_cfg.get("mode", "long_only")).lower()
+    allow_shorting = portfolio_mode == "market_neutral"
 
     order_type = str(execution_section.get("order_type", "MKT"))
     tif = str(execution_section.get("tif", "DAY"))
@@ -208,6 +266,7 @@ def main() -> None:
     max_turnover = None if max_turnover is None else float(max_turnover)
     max_position_weight = float(risk_controls.get("max_position_weight", 1.0))
     max_gross_exposure = float(risk_controls.get("max_gross_exposure", 1.0))
+    max_net_exposure = float(risk_controls.get("max_net_exposure", 1.0))
     reject_if_missing_prices = bool(risk_controls.get("reject_if_missing_prices", True))
     kill_switch_enabled = bool(risk_controls.get("kill_switch_enabled", True))
 
@@ -224,6 +283,14 @@ def main() -> None:
 
         missing_symbols = [s for s in symbols if s not in prices]
         if missing_symbols and reject_if_missing_prices:
+            missing_target = sorted([s for s in missing_symbols if s in set(target_weights_raw.index.astype(str))])
+            if missing_target:
+                raise ValueError(
+                    "Missing prices for symbols present in target weights: "
+                    f"{missing_target}. This usually means `outputs/backtests/weights_history.parquet` "
+                    "was generated with a different universe than the current prices data. "
+                    "Re-run scripts/03_backtest.py after updating data/panel/train."
+                )
             raise ValueError(f"Missing prices for symbols: {missing_symbols}")
 
         symbols = [s for s in symbols if s in prices]
@@ -238,18 +305,24 @@ def main() -> None:
             symbols=symbols,
         )
 
-        target_weights = target_weights_raw.reindex(symbols).fillna(0.0)
-        if target_weights.sum() > 0:
-            target_weights = target_weights / target_weights.sum()
-
-        investable_fraction = max(0.0, 1.0 - min_cash_buffer)
-        target_weights = target_weights * investable_fraction
+        target_weights = _prepare_target_weights(
+            target_weights_raw=target_weights_raw,
+            symbols=symbols,
+            portfolio_mode=portfolio_mode,
+            min_cash_buffer=min_cash_buffer,
+        )
         target_weights, turnover = apply_turnover_cap(
             target_weights=target_weights,
             prev_weights=current_weights,
             max_turnover_per_rebalance=max_turnover,
         )
-        _validate_weights(target_weights, max_position_weight=max_position_weight, max_gross_exposure=max_gross_exposure)
+        _validate_weights_with_mode(
+            weights=target_weights,
+            max_position_weight=max_position_weight,
+            max_gross_exposure=max_gross_exposure,
+            allow_short=allow_shorting,
+            max_net_exposure=max_net_exposure,
+        )
 
         target_qty = _compute_target_shares(
             symbols=symbols,
@@ -312,7 +385,10 @@ def main() -> None:
             "portfolio_turnover_estimate": float(turnover),
             "max_position_weight": max_position_weight,
             "max_gross_exposure": max_gross_exposure,
+            "max_net_exposure": max_net_exposure,
             "min_cash_buffer": min_cash_buffer,
+            "portfolio_mode": portfolio_mode,
+            "allow_shorting": allow_shorting,
             "orders_file": str(orders_path),
             "broker_order_ids": broker_ids,
         }
@@ -321,6 +397,7 @@ def main() -> None:
 
         print("Rebalance plan ready")
         print(f"Mode/Broker: {mode}/{broker_name}")
+        print(f"Portfolio mode: {portfolio_mode} (allow shorting={allow_shorting})")
         print(f"Apply orders: {can_apply}")
         print(f"Rebalance date used: {rebalance_date.date()}")
         print(f"Equity: {snapshot.equity:,.2f}")

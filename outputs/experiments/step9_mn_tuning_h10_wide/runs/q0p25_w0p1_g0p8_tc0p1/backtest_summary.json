@@ -1,0 +1,38 @@
+{
+  "allocation_method": "score_over_vol",
+  "annualized_return": -0.0003688484441615181,
+  "annualized_volatility": 0.023946045421909007,
+  "average_ex_ante_factor_exposure": {
+    "growth_proxy": -0.012034964484471425,
+    "nasdaq_proxy": 0.024997702777046295
+  },
+  "average_gross_exposure": 0.3164866231323861,
+  "average_net_exposure": -0.0028501729889006994,
+  "average_overlay_leverage": 1.0,
+  "average_turnover": 0.1,
+  "beta_neutralization_enabled": true,
+  "end_date": "2026-02-20",
+  "ex_post_factor_alpha_daily": -1.8614640536657794e-05,
+  "ex_post_factor_betas": {
+    "growth_proxy": -0.01164728097639404,
+    "nasdaq_proxy": 0.026790840452104985
+  },
+  "ex_post_factor_r2": 0.05161140204600201,
+  "max_abs_ex_ante_factor_exposure": {
+    "growth_proxy": 0.07435314620207871,
+    "nasdaq_proxy": 0.09466363039181153
+  },
+  "max_drawdown": -0.042955527369464286,
+  "max_overlay_leverage": 1.0,
+  "min_overlay_leverage": 1.0,
+  "n_days": 2208,
+  "n_rebalances": 220,
+  "portfolio_mode": "market_neutral",
+  "risk_overlay_enabled": false,
+  "sharpe_ratio": -0.01540331347672325,
+  "signal_rank_zscore": true,
+  "start_date": "2017-05-10",
+  "total_cost_bps_paid": 154.00000000000003,
+  "total_return": -0.003227192494502318,
+  "weekly_sharpe_ratio": -0.015778994732727075
+}

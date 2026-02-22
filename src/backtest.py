@@ -128,6 +128,13 @@ def _compute_summary(
         "signal_rank_zscore": bool(use_rank_zscore),
         "beta_neutralization_enabled": bool(beta_neutralization_enabled),
     }
+    if "risk_overlay_leverage" in rebalance_log.columns:
+        lev = pd.to_numeric(rebalance_log["risk_overlay_leverage"], errors="coerce").dropna()
+        if not lev.empty:
+            summary["average_overlay_leverage"] = float(lev.mean())
+            summary["min_overlay_leverage"] = float(lev.min())
+            summary["max_overlay_leverage"] = float(lev.max())
+            summary["risk_overlay_enabled"] = bool((lev != 1.0).any())
     factor_cols = [col for col in rebalance_log.columns if col.startswith("ex_ante_factor_")]
     if factor_cols:
         mean_map: dict[str, float] = {}
@@ -172,6 +179,46 @@ def _estimate_asset_volatility(
     median = float(vol[vol > 0].median()) if (vol > 0).any() else 1.0
     vol = vol.where(vol > 1e-12, median if median > 0 else 1.0).fillna(median if median > 0 else 1.0)
     return vol.astype(float)
+
+
+def _compute_running_drawdown(returns: list[float]) -> float:
+    if not returns:
+        return 0.0
+    arr = np.asarray(returns, dtype=float)
+    equity = np.cumprod(1.0 + arr)
+    peaks = np.maximum.accumulate(equity)
+    drawdown = equity / peaks - 1.0
+    return float(drawdown[-1])
+
+
+def _compute_overlay_leverage(
+    returns_history: list[float],
+    enabled: bool,
+    vol_target_annual: float | None,
+    realized_vol_lookback_days: int,
+    min_leverage: float,
+    max_leverage: float,
+    drawdown_derisk_enabled: bool,
+    drawdown_trigger: float,
+    drawdown_multiplier: float,
+) -> tuple[float, float | None, float]:
+    running_drawdown = _compute_running_drawdown(returns_history)
+    if not enabled:
+        return 1.0, None, running_drawdown
+
+    realized_vol_annual: float | None = None
+    leverage = 1.0
+    if vol_target_annual is not None and vol_target_annual > 0.0 and len(returns_history) > 1:
+        window = np.asarray(returns_history[-max(2, realized_vol_lookback_days) :], dtype=float)
+        realized_vol_annual = float(np.std(window, ddof=1) * np.sqrt(252.0))
+        if realized_vol_annual > 1e-12:
+            leverage = float(vol_target_annual / realized_vol_annual)
+
+    if drawdown_derisk_enabled and running_drawdown <= drawdown_trigger:
+        leverage *= drawdown_multiplier
+
+    leverage = float(np.clip(leverage, min_leverage, max_leverage))
+    return leverage, realized_vol_annual, running_drawdown
 
 
 def _build_universe_growth_proxy_returns(
@@ -607,6 +654,7 @@ def run_backtest(
     costs_cfg = backtest_section.get("costs", {})
     constraints_cfg = backtest_section.get("constraints", {})
     objective_cfg = backtest_section.get("objective", {})
+    risk_overlay_cfg = backtest_section.get("risk_overlay", {})
 
     if not isinstance(signal_cfg, dict):
         raise ValueError("`backtest.signal_transform` must be a mapping.")
@@ -614,6 +662,8 @@ def run_backtest(
         raise ValueError("`backtest.portfolio` must be a mapping.")
     if not isinstance(beta_neut_cfg, dict):
         raise ValueError("`backtest.portfolio.beta_neutralization` must be a mapping.")
+    if not isinstance(risk_overlay_cfg, dict):
+        raise ValueError("`backtest.risk_overlay` must be a mapping.")
 
     long_only_default = bool(constraints_cfg.get("long_only", True))
     portfolio_mode = str(portfolio_cfg.get("mode", "long_only" if long_only_default else "market_neutral")).lower()
@@ -636,6 +686,32 @@ def run_backtest(
     bps_per_side = costs_cfg.get("bps_per_side", 5.0)
     slippage_bps = costs_cfg.get("slippage_bps", 2.0)
     total_cost_bps = float(bps_per_side) + float(slippage_bps)
+
+    overlay_enabled = bool(risk_overlay_cfg.get("enabled", False))
+    overlay_vol_target = risk_overlay_cfg.get("vol_target_annual")
+    overlay_vol_target = None if overlay_vol_target is None else float(overlay_vol_target)
+    overlay_vol_lookback = int(risk_overlay_cfg.get("realized_vol_lookback_days", 63))
+    overlay_min_leverage = float(risk_overlay_cfg.get("min_leverage", 0.0))
+    overlay_max_leverage = float(risk_overlay_cfg.get("max_leverage", 1.0))
+    overlay_dd_cfg = risk_overlay_cfg.get("drawdown_de_risk", {})
+    if not isinstance(overlay_dd_cfg, dict):
+        raise ValueError("`backtest.risk_overlay.drawdown_de_risk` must be a mapping.")
+    overlay_dd_enabled = bool(overlay_dd_cfg.get("enabled", False))
+    overlay_dd_trigger = float(overlay_dd_cfg.get("drawdown_trigger", -0.10))
+    overlay_dd_multiplier = float(overlay_dd_cfg.get("leverage_multiplier", 0.5))
+
+    if overlay_vol_lookback < 2:
+        raise ValueError("`backtest.risk_overlay.realized_vol_lookback_days` must be >= 2.")
+    if overlay_min_leverage < 0:
+        raise ValueError("`backtest.risk_overlay.min_leverage` must be >= 0.")
+    if overlay_max_leverage <= 0:
+        raise ValueError("`backtest.risk_overlay.max_leverage` must be > 0.")
+    if overlay_min_leverage > overlay_max_leverage:
+        raise ValueError("`backtest.risk_overlay.min_leverage` cannot exceed `max_leverage`.")
+    if overlay_dd_trigger >= 0:
+        raise ValueError("`backtest.risk_overlay.drawdown_de_risk.drawdown_trigger` must be negative.")
+    if overlay_dd_multiplier < 0:
+        raise ValueError("`backtest.risk_overlay.drawdown_de_risk.leverage_multiplier` must be >= 0.")
 
     max_turnover = risk_controls.get("max_turnover_per_rebalance")
     if max_turnover is not None:
@@ -715,6 +791,7 @@ def run_backtest(
     weights_records: list[dict[str, Any]] = []
     rebalance_logs: list[dict[str, Any]] = []
     daily_records: list[dict[str, Any]] = []
+    realized_net_returns: list[float] = []
 
     cached_beta_anchor: str | None = None
     cached_factor_exposures: pd.DataFrame | None = None
@@ -741,6 +818,17 @@ def run_backtest(
 
         prev_sub = prev_weights.reindex(tickers).fillna(0.0)
         ex_ante_factor_map: dict[str, float] = {}
+        overlay_leverage, overlay_realized_vol, overlay_running_dd = _compute_overlay_leverage(
+            returns_history=realized_net_returns,
+            enabled=overlay_enabled,
+            vol_target_annual=overlay_vol_target,
+            realized_vol_lookback_days=overlay_vol_lookback,
+            min_leverage=overlay_min_leverage,
+            max_leverage=overlay_max_leverage,
+            drawdown_derisk_enabled=overlay_dd_enabled,
+            drawdown_trigger=overlay_dd_trigger,
+            drawdown_multiplier=overlay_dd_multiplier,
+        )
 
         if allocation_method == "mean_variance":
             cov_daily = estimate_covariance_matrix(
@@ -803,6 +891,9 @@ def run_backtest(
                         weight_max_abs=float(weight_max),
                     )
 
+        if overlay_enabled:
+            target = target * float(overlay_leverage)
+
         final_w, turnover = apply_turnover_cap(
             target_weights=target,
             prev_weights=prev_sub,
@@ -826,6 +917,7 @@ def run_backtest(
         net_series = gross_series.copy()
         first_day = hold_dates.iloc[0]
         net_series.loc[first_day] = net_series.loc[first_day] - trade_cost
+        realized_net_returns.extend([float(net_series.loc[d]) for d in hold_dates])
 
         for d in hold_dates:
             daily_records.append(
@@ -858,6 +950,11 @@ def run_backtest(
             "turnover": float(turnover),
             "trade_cost_bps_paid": float(turnover * total_cost_bps),
             "trade_cost_return": float(trade_cost),
+            "risk_overlay_leverage": float(overlay_leverage),
+            "risk_overlay_realized_vol_annual": (
+                None if overlay_realized_vol is None else float(overlay_realized_vol)
+            ),
+            "risk_overlay_running_drawdown": float(overlay_running_dd),
         }
         for name, value in ex_ante_factor_map.items():
             log_row[f"ex_ante_factor_{name}"] = float(value)

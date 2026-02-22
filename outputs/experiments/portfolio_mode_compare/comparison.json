@@ -1,14 +1,14 @@
 [
   {
     "mode": "long_only",
-    "annualized_return": 0.30515550996351526,
-    "annualized_volatility": 0.3334750979353058,
-    "sharpe_ratio": 0.9150773531603115,
-    "weekly_sharpe_ratio": 0.9877689548815031,
-    "max_drawdown": -0.5542706430640822,
-    "average_turnover": 0.3486930234090578,
-    "average_gross_exposure": 0.9290070655441642,
-    "average_net_exposure": 0.9290070655441642,
+    "annualized_return": 0.2460218249264523,
+    "annualized_volatility": 0.21466804952090396,
+    "sharpe_ratio": 1.1460570190837607,
+    "weekly_sharpe_ratio": 1.2011293628682627,
+    "max_drawdown": -0.34809064544140333,
+    "average_turnover": 0.35000000000000003,
+    "average_gross_exposure": 0.9327568386409786,
+    "average_net_exposure": 0.9327568386409786,
     "average_ex_ante_beta_to_factor": null,
     "average_ex_ante_factor_exposure": null,
     "ex_post_factor_betas": null,
@@ -16,23 +16,23 @@
   },
   {
     "mode": "market_neutral",
-    "annualized_return": -0.04215447364884817,
-    "annualized_volatility": 0.07657126083008946,
-    "sharpe_ratio": -0.5505260484398755,
-    "weekly_sharpe_ratio": -0.5335553132877466,
-    "max_drawdown": -0.41412684024052115,
-    "average_turnover": 0.3496251676150188,
-    "average_gross_exposure": 0.6573538291226441,
-    "average_net_exposure": 0.00017452373620231753,
+    "annualized_return": 0.009859455312253518,
+    "annualized_volatility": 0.04127334251438642,
+    "sharpe_ratio": 0.23888192018412036,
+    "weekly_sharpe_ratio": 0.24496254487691924,
+    "max_drawdown": -0.05657505075305136,
+    "average_turnover": 0.35000000000000003,
+    "average_gross_exposure": 0.5583650643670315,
+    "average_net_exposure": -7.277521431752016e-20,
     "average_ex_ante_beta_to_factor": null,
     "average_ex_ante_factor_exposure": {
-      "nasdaq_proxy": 0.015678998850017344,
-      "growth_proxy": 0.005819263718866084
+      "nasdaq_proxy": 0.04826646852452717,
+      "growth_proxy": -0.02161587747032428
     },
     "ex_post_factor_betas": {
-      "nasdaq_proxy": 0.011913493500309355,
-      "growth_proxy": 0.015087999586551822
+      "nasdaq_proxy": 0.03766306930679326,
+      "growth_proxy": 0.004243318238591334
     },
-    "ex_post_factor_r2": 0.003143514047535212
+    "ex_post_factor_r2": 0.04882444606702663
   }
 ]

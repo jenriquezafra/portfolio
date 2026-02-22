@@ -10,38 +10,31 @@
     "allocation_method": "score_over_vol",
     "end_date": "2026-02-20",
     "n_rebalances": 146,
-    "portfolio_mode": "market_neutral",
-    "sharpe_ratio": 0.3427354707436446,
+    "portfolio_mode": "long_only",
+    "sharpe_ratio": 1.1449620165326495,
     "start_date": "2017-05-17",
-    "weekly_sharpe_ratio": 0.32655446351457856
+    "weekly_sharpe_ratio": 1.200457521101142
   },
-  "factor_names": [
-    "nasdaq_proxy",
-    "growth_proxy"
-  ],
-  "generated_at_utc": "2026-02-22T18:08:09.507377+00:00",
+  "factor_names": [],
+  "generated_at_utc": "2026-02-22T22:06:51.508777+00:00",
   "metrics": {
     "full_sample": {
-      "ex_ante_max_abs_worst": 0.18807758009410513,
-      "ex_ante_mean_abs_max": 0.027724805161166557,
-      "ex_post_beta_abs_l1": 0.05165668920635909,
-      "ex_post_beta_abs_max": 0.03359205024635881,
-      "ex_post_r2": 0.03783806059910988
+      "ex_ante_max_abs_worst": null,
+      "ex_ante_mean_abs_max": null,
+      "ex_post_beta_abs_l1": null,
+      "ex_post_beta_abs_max": null,
+      "ex_post_r2": null
     },
     "yearly": {
-      "ex_post_beta_yearly_abs_max": 0.21958210560319796,
+      "ex_post_beta_yearly_abs_max": null,
       "min_obs_filter": 60,
-      "yearly_sign_flip_counts": {
-        "growth_proxy": 3,
-        "nasdaq_proxy": 2
-      }
+      "yearly_sign_flip_counts": {}
     }
   },
   "recommendations": [
-    "Factor diagnostics are within configured thresholds.",
-    "Frequent yearly beta sign flips in: growth_proxy."
+    "No factor diagnostics available. Enable beta_neutralization factors in backtest config."
   ],
-  "status": "pass",
+  "status": "missing_factors",
   "thresholds": {
     "ex_ante_max_abs_max": 0.35,
     "ex_ante_mean_abs_max": 0.05,

@@ -1,0 +1,22 @@
+{
+  "run_id": 144,
+  "horizon_days": 10,
+  "long_short_quantile": 0.35,
+  "weight_max": 0.12,
+  "gross_exposure_target": 1.2,
+  "turnover_cap": 0.2,
+  "status": "ok",
+  "error": null,
+  "annualized_return": 0.002778598177969327,
+  "annualized_volatility": 0.036867835860667136,
+  "sharpe_ratio": 0.07536645732259283,
+  "weekly_sharpe_ratio": 0.07690481412681412,
+  "max_drawdown": -0.07007549160874971,
+  "average_turnover": 0.2,
+  "total_cost_bps_paid": 308.00000000000006,
+  "average_gross_exposure": 0.51440105185808,
+  "average_net_exposure": 0.006815061518450705,
+  "ex_ante_factor_exposure_l1": 0.06621521973668855,
+  "ex_post_factor_beta_l1": 0.06875281168083336,
+  "ex_post_factor_r2": 0.06425524690615103
+}

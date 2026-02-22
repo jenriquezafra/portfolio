@@ -9,8 +9,8 @@ backtest:
     cross_sectional_rank_zscore: true
   portfolio:
     mode: market_neutral
-    long_quantile: 0.35
-    short_quantile: 0.35
+    long_quantile: 0.20
+    short_quantile: 0.20
     gross_exposure_target: 1.0
     vol_lookback_days: 60
     beta_neutralization:
@@ -40,3 +40,13 @@ backtest:
     allocation_method: score_over_vol
     risk_aversion_lambda: 10.0
     turnover_penalty_eta: 5.0
+  risk_overlay:
+    enabled: false
+    vol_target_annual: 0.10
+    realized_vol_lookback_days: 63
+    min_leverage: 0.25
+    max_leverage: 1.00
+    drawdown_de_risk:
+      enabled: true
+      drawdown_trigger: -0.10
+      leverage_multiplier: 0.50

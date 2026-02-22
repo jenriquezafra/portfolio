@@ -1,0 +1,53 @@
+{
+  "checks": {
+    "ex_ante_max_abs_ok": false,
+    "ex_ante_mean_abs_ok": true,
+    "ex_post_beta_abs_ok": true,
+    "ex_post_beta_yearly_abs_ok": true,
+    "ex_post_r2_ok": true
+  },
+  "context": {
+    "allocation_method": "score_over_vol",
+    "end_date": "2026-02-20",
+    "n_rebalances": 220,
+    "portfolio_mode": "market_neutral",
+    "sharpe_ratio": 0.1500423548812413,
+    "start_date": "2017-05-10",
+    "weekly_sharpe_ratio": 0.1504936709996778
+  },
+  "factor_names": [
+    "nasdaq_proxy",
+    "growth_proxy"
+  ],
+  "generated_at_utc": "2026-02-22T20:29:11.424647+00:00",
+  "metrics": {
+    "full_sample": {
+      "ex_ante_max_abs_worst": 0.41123986383431055,
+      "ex_ante_mean_abs_max": 0.04781436916765393,
+      "ex_post_beta_abs_l1": 0.07347662271152591,
+      "ex_post_beta_abs_max": 0.04550233215812307,
+      "ex_post_r2": 0.06799774023967331
+    },
+    "yearly": {
+      "ex_post_beta_yearly_abs_max": 0.17004588641175603,
+      "min_obs_filter": 60,
+      "yearly_sign_flip_counts": {
+        "growth_proxy": 5,
+        "nasdaq_proxy": 3
+      }
+    }
+  },
+  "recommendations": [
+    "Cap extreme ex-ante factor spikes: review quantiles/weight caps and turnover cap interaction.",
+    "Frequent yearly beta sign flips in: growth_proxy, nasdaq_proxy."
+  ],
+  "status": "warning",
+  "thresholds": {
+    "ex_ante_max_abs_max": 0.35,
+    "ex_ante_mean_abs_max": 0.05,
+    "ex_post_beta_abs_max": 0.15,
+    "ex_post_beta_yearly_abs_max": 0.35,
+    "ex_post_r2_max": 0.15,
+    "yearly_min_obs": 60.0
+  }
+}
