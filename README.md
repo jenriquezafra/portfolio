@@ -52,9 +52,9 @@ $$
 
 where:
 
-- $ \mu_t = E[r_{t+H} \mid \mathcal{F}_t] $
-- $ \Sigma_t = Cov(r_{t+H} \mid \mathcal{F}_t) $
-- $ \lambda > 0 $ is the risk aversion parameter
+- $\mu_t = E[r_{t+H} \mid \mathcal{F}_t]$
+- $\Sigma_t = Cov(r_{t+H} \mid \mathcal{F}_t)$
+- $\lambda > 0$ is the risk aversion parameter
 
 This corresponds to maximizing quadratic utility:
 
@@ -76,7 +76,7 @@ However:
 
 - Expected returns are noisy
 - Estimation error dominates optimization
-- Small errors in \( \mu_t \) produce extreme weight instability
+- Small errors in $\mu_t$ produce extreme weight instability
 
 Thus, estimating conditional expected returns is the central challenge.
 
@@ -92,8 +92,8 @@ $$
 
 where:
 
-- $ X_{i,t} $ is a feature vector
-- $ \hat{\mu}_{i,t} $ is the predicted conditional return
+- $X_{i,t}$ is a feature vector
+- $\hat{\mu}_{i,t}$ is the predicted conditional return
 
 Formally:
 
@@ -137,9 +137,9 @@ $$
 
 where:
 
-- $ h_m $ are regression trees
-- $ \gamma_m $ are weights
-- $ M $ is number of boosting rounds
+- $h_m$ are regression trees
+- $\gamma_m$ are weights
+- $M$ is number of boosting rounds
 
 Training objective:
 
@@ -147,8 +147,7 @@ $$
 \min_\theta \sum_{t,i} (r_{i,t+H} - f_\theta(X_{i,t}))^2 + \Omega(\theta)
 $$
 
-where $ \Omega(\theta) $ is regularization.
-
+where $\Omega(\theta)$ is regularization.
 ---
 
 # 6. Portfolio Construction with ML Predictions
@@ -173,7 +172,7 @@ $$
 
 where:
 
-- $ \eta > 0 $ penalizes excessive rebalancing
+- $\eta > 0$ penalizes excessive rebalancing
 - This reduces transaction costs and instability
 
 ---
@@ -190,7 +189,7 @@ $$
 \Sigma_t = \widehat{Cov}(r_{t-L:t})
 $$
 
-with lookback window \( L \).
+with lookback window $L$.
 
 ---
 
@@ -198,7 +197,7 @@ with lookback window \( L \).
 
 Walk-forward procedure:
 
-For each rebalancing date $ t_k $:
+For each rebalancing date $t_k$:
 
 1. Train model on:
 $$
