@@ -1,10 +1,15 @@
 execution:
   mode: paper
-  broker: ibkr
+  broker: paper
   account_currency: USD
   rebalance_time_ny: "15:45"
   order_type: MKT
   tif: DAY
+
+paper:
+  initial_cash: 100000
+  state_path: outputs/execution/paper_state.json
+  prices_path: data/processed/prices_clean.parquet
 
 ibkr:
   host: ${IBKR_HOST}

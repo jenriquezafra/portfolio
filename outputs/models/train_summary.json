@@ -1,0 +1,30 @@
+{
+  "avg_validation_ic_spearman": 0.40709759929227346,
+  "date_end": "2026-02-09",
+  "date_start": "2016-04-13",
+  "features": [
+    "ret_1d",
+    "ret_5d",
+    "ret_20d",
+    "vol_20d",
+    "momentum_20_60"
+  ],
+  "horizon_days": 5,
+  "model_params": {
+    "colsample_bytree": 0.8,
+    "learning_rate": 0.03,
+    "max_depth": 4,
+    "n_estimators": 300,
+    "objective": "reg:squarederror",
+    "random_state": 42,
+    "subsample": 0.8
+  },
+  "n_predictions": 10777,
+  "n_rebalances": 495,
+  "oos_ic_spearman": -0.015450077436555488,
+  "rebalance_every_n_days": 5,
+  "rebalance_frequency": "every_n_days",
+  "target_column": "fwd_return_5d",
+  "train_window_days": 756,
+  "validation_window_days": 252
+}

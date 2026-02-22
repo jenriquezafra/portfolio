@@ -1,0 +1,17 @@
+{
+  "account_cash": 100000.0,
+  "account_equity": 100000.0,
+  "apply": false,
+  "broker": "paper",
+  "broker_order_ids": [],
+  "max_gross_exposure": 1.0,
+  "max_position_weight": 0.2,
+  "min_cash_buffer": 0.02,
+  "mode": "paper",
+  "n_orders": 22,
+  "n_symbols": 25,
+  "orders_file": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/execution/rebalance_2026-02-09_20260222_150348_orders.csv",
+  "portfolio_turnover_estimate": 0.9999999999999999,
+  "rebalance_date": "2026-02-09",
+  "timestamp_utc": "2026-02-22T15:03:48Z"
+}

@@ -319,3 +319,26 @@ cp .env.example .env
 - Keep `readonly=true` until execution checks are validated.
 - Enforce hard limits (`max_position_weight`, `max_turnover_per_rebalance`, `kill_switch_enabled`) from `configs/config_execution.yaml`.
 - Move to production only after walk-forward + paper trading checks are stable.
+
+---
+
+# 14. Rebalance Execution
+
+Generate orders from latest backtest weights (dry-run by default):
+
+```bash
+python scripts/04_rebalance.py
+```
+
+Apply orders to configured broker:
+
+```bash
+python scripts/04_rebalance.py --apply
+```
+
+Key behavior:
+
+- Reads target weights from `outputs/backtests/weights_history.parquet`
+- Pulls account snapshot + prices from configured broker (`paper` or `ibkr`)
+- Applies risk controls from `configs/config_execution.yaml`
+- Saves order plan and execution summary in `outputs/execution/`

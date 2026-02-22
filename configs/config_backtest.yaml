@@ -1,7 +1,10 @@
 backtest:
   train_window_days: 756
   validation_window_days: 252
-  rebalance_frequency: monthly
+  rebalance_frequency: every_n_days
+  rebalance_every_n_days: 5
+  risk_lookback_days: 60
+  risk_shrinkage: 0.10
   costs:
     bps_per_side: 5.0
     slippage_bps: 2.0
