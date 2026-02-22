@@ -253,3 +253,69 @@ This framework belongs to the domain of:
 - Quantitative Portfolio Construction
 
 It combines classical financial theory with modern machine learning methods in a minimal and controlled implementation.
+
+---
+
+# 11. Project Structure (Implementation Layer)
+
+```
+portfolio/
+  configs/
+    config_data.yaml
+    config_model.yaml
+    config_backtest.yaml
+    config_execution.yaml
+  data/
+    raw/
+    processed/
+  outputs/
+    models/
+    backtests/
+  scripts/
+    00_fetch_data.py
+    01_build_panel.py
+    02_train.py
+    03_backtest.py
+    04_rebalance.py
+    05_run_all.py
+  src/
+    data.py
+    features.py
+    model_xgb.py
+    risk.py
+    optimizer.py
+    backtest.py
+    reporting.py
+    execution/
+      broker_base.py
+      paper.py
+      ibkr.py
+  tests/
+```
+
+---
+
+# 12. Environment Setup (.venv)
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -U pip
+pip install -r requirements.txt
+```
+
+For local secrets/config:
+
+```bash
+cp .env.example .env
+```
+
+---
+
+# 13. Safety Defaults for IBKR Paper -> Production
+
+- Default execution mode is `paper`.
+- Use a separate `client_id` and account validation before sending orders.
+- Keep `readonly=true` until execution checks are validated.
+- Enforce hard limits (`max_position_weight`, `max_turnover_per_rebalance`, `kill_switch_enabled`) from `configs/config_execution.yaml`.
+- Move to production only after walk-forward + paper trading checks are stable.

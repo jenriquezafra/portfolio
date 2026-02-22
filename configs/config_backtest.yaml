@@ -1,0 +1,14 @@
+backtest:
+  train_window_days: 756
+  validation_window_days: 252
+  rebalance_frequency: monthly
+  costs:
+    bps_per_side: 5.0
+    slippage_bps: 2.0
+  constraints:
+    long_only: true
+    fully_invested: true
+    weight_max: 0.20
+  objective:
+    risk_aversion_lambda: 10.0
+    turnover_penalty_eta: 5.0

@@ -1,1 +1,43 @@
+data:
+  provider: yfinance
+  timezone: America/New_York
+  frequency: 1d
+  start_date: "2016-01-01"
+  end_date: null
+  universe:
+    - AAPL
+    - MSFT
+    - AMZN
+    - GOOGL
+    - META
+    - ORCL
+    - NVDA
+    - AMD
+    - AVGO
+    - ASML
+    - TSM
+    - AMAT
+    - LRCX
+    - KLAC
+    - MU
+    - ARM
+    - CRWD
+    - PANW
+    - ZS
+    - NET
+    - DDOG
+    - NOW
+    - PLTR
+    - SNOW
+    - MDB
+  output_raw_path: data/raw/prices.parquet
+  output_clean_path: data/processed/prices_clean.parquet
+  output_panel_path: data/processed/panel.parquet
 
+labels:
+  horizon_days: 5
+  target_column: fwd_return_5d
+
+preprocessing:
+  min_history_days: 252
+  drop_rows_without_adj_close: true
