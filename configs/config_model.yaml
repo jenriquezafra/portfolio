@@ -6,6 +6,7 @@ model:
     - ret_20d
     - vol_20d
     - momentum_20_60
+    - momentum_x_vol_20
   params:
     n_estimators: 300
     max_depth: 4

@@ -1,0 +1,13 @@
+{
+  "annualized_return": 0.30303460137278715,
+  "annualized_volatility": 0.26210108298738205,
+  "average_turnover": 0.007387797370437088,
+  "end_date": "2026-02-20",
+  "max_drawdown": -0.37806488602470345,
+  "n_days": 2223,
+  "n_rebalances": 444,
+  "sharpe_ratio": 1.1561745488376165,
+  "start_date": "2017-04-19",
+  "total_cost_bps_paid": 22.961274227318466,
+  "total_return": 9.329414066134278
+}

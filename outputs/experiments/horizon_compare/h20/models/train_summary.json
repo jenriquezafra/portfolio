@@ -1,0 +1,40 @@
+{
+  "avg_validation_ic_spearman": 0.027812058216190035,
+  "date_end": "2026-01-09",
+  "date_start": "2017-06-07",
+  "features": [
+    "ret_1d",
+    "ret_5d",
+    "ret_20d",
+    "vol_20d",
+    "momentum_20_60"
+  ],
+  "horizon_days": 20,
+  "model_params": {
+    "colsample_bytree": 0.8,
+    "learning_rate": 0.03,
+    "max_depth": 4,
+    "n_estimators": 300,
+    "objective": "reg:squarederror",
+    "random_state": 42,
+    "subsample": 0.8
+  },
+  "n_predictions": 2439,
+  "n_rebalances": 109,
+  "oos_cs_ic_ir": -0.23553764669879038,
+  "oos_cs_ic_mean": -0.06650084501260273,
+  "oos_cs_ic_median": -0.07908763520033059,
+  "oos_cs_ic_positive_rate": 0.36792452830188677,
+  "oos_cs_ic_std": 0.2823363735889115,
+  "oos_ic_spearman": -0.050289716306841134,
+  "oos_top_bottom_mean": -0.016395348400015268,
+  "oos_top_bottom_median": -0.020050540325385804,
+  "oos_top_bottom_positive_rate": 0.41284403669724773,
+  "oos_top_bottom_tstat": -1.9715240687385807,
+  "rebalance_every_n_days": 20,
+  "rebalance_frequency": "every_n_days",
+  "target_column": "fwd_return_20d_resid",
+  "train_window_days": 756,
+  "validation_scheme": "time_series_purged",
+  "validation_window_days": 252
+}

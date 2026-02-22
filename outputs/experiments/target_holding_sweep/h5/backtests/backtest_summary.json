@@ -1,0 +1,20 @@
+{
+  "allocation_method": "score_over_vol",
+  "annualized_return": 0.3438296823384921,
+  "annualized_volatility": 0.3203525995373323,
+  "average_gross_exposure": 0.9068765565882266,
+  "average_net_exposure": 0.9068765565882266,
+  "average_turnover": 0.34846891087464626,
+  "beta_neutralization_enabled": false,
+  "end_date": "2026-02-20",
+  "max_drawdown": -0.4922834589554539,
+  "n_days": 2223,
+  "n_rebalances": 444,
+  "portfolio_mode": "long_only",
+  "sharpe_ratio": 1.0732851328038744,
+  "signal_rank_zscore": true,
+  "start_date": "2017-04-19",
+  "total_cost_bps_paid": 1083.0413749984004,
+  "total_return": 12.557495004868624,
+  "weekly_sharpe_ratio": 1.1526951704720176
+}

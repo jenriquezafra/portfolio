@@ -1,0 +1,22 @@
+{
+  "run_id": 41,
+  "horizon_days": 5,
+  "long_short_quantile": 0.3,
+  "weight_max": 0.1,
+  "gross_exposure_target": 1.5,
+  "turnover_cap": 0.35,
+  "status": "infeasible",
+  "error": "Infeasible market-neutral side budgets for weight cap.",
+  "annualized_return": null,
+  "annualized_volatility": null,
+  "sharpe_ratio": null,
+  "weekly_sharpe_ratio": null,
+  "max_drawdown": null,
+  "average_turnover": null,
+  "total_cost_bps_paid": null,
+  "average_gross_exposure": null,
+  "average_net_exposure": null,
+  "ex_ante_factor_exposure_l1": 0.0,
+  "ex_post_factor_beta_l1": 0.0,
+  "ex_post_factor_r2": null
+}

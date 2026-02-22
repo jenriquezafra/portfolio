@@ -1,0 +1,38 @@
+[
+  {
+    "mode": "long_only",
+    "annualized_return": 0.30515550996351526,
+    "annualized_volatility": 0.3334750979353058,
+    "sharpe_ratio": 0.9150773531603115,
+    "weekly_sharpe_ratio": 0.9877689548815031,
+    "max_drawdown": -0.5542706430640822,
+    "average_turnover": 0.3486930234090578,
+    "average_gross_exposure": 0.9290070655441642,
+    "average_net_exposure": 0.9290070655441642,
+    "average_ex_ante_beta_to_factor": null,
+    "average_ex_ante_factor_exposure": null,
+    "ex_post_factor_betas": null,
+    "ex_post_factor_r2": null
+  },
+  {
+    "mode": "market_neutral",
+    "annualized_return": -0.04215447364884817,
+    "annualized_volatility": 0.07657126083008946,
+    "sharpe_ratio": -0.5505260484398755,
+    "weekly_sharpe_ratio": -0.5335553132877466,
+    "max_drawdown": -0.41412684024052115,
+    "average_turnover": 0.3496251676150188,
+    "average_gross_exposure": 0.6573538291226441,
+    "average_net_exposure": 0.00017452373620231753,
+    "average_ex_ante_beta_to_factor": null,
+    "average_ex_ante_factor_exposure": {
+      "nasdaq_proxy": 0.015678998850017344,
+      "growth_proxy": 0.005819263718866084
+    },
+    "ex_post_factor_betas": {
+      "nasdaq_proxy": 0.011913493500309355,
+      "growth_proxy": 0.015087999586551822
+    },
+    "ex_post_factor_r2": 0.003143514047535212
+  }
+]

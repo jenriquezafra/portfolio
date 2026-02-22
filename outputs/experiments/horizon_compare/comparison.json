@@ -1,0 +1,47 @@
+[
+  {
+    "horizon_days": 5,
+    "rebalance_every_n_days": 5,
+    "n_rebalances": 444,
+    "oos_cs_ic_mean": 0.018830461499172235,
+    "oos_cs_ic_ir": 0.06821019470533303,
+    "oos_top_bottom_mean": 0.00048330584728289007,
+    "annualized_return": 0.30303460137278715,
+    "annualized_volatility": 0.26210108298738205,
+    "sharpe_ratio": 1.1561745488376165,
+    "max_drawdown": -0.37806488602470345,
+    "average_turnover": 0.007387797370437088,
+    "total_cost_bps_paid": 22.961274227318466,
+    "elapsed_seconds": 51.58
+  },
+  {
+    "horizon_days": 10,
+    "rebalance_every_n_days": 10,
+    "n_rebalances": 220,
+    "oos_cs_ic_mean": 0.002689655054554897,
+    "oos_cs_ic_ir": 0.009858546375315674,
+    "oos_top_bottom_mean": -0.0007936521298677985,
+    "annualized_return": 0.29774500304435825,
+    "annualized_volatility": 0.2631655812959168,
+    "sharpe_ratio": 1.1313979646508507,
+    "max_drawdown": -0.38063478755163616,
+    "average_turnover": 0.0146227490908017,
+    "total_cost_bps_paid": 22.519033599834618,
+    "elapsed_seconds": 26.53
+  },
+  {
+    "horizon_days": 20,
+    "rebalance_every_n_days": 20,
+    "n_rebalances": 109,
+    "oos_cs_ic_mean": -0.06650084501260273,
+    "oos_cs_ic_ir": -0.23553764669879038,
+    "oos_top_bottom_mean": -0.016395348400015268,
+    "annualized_return": 0.29789491076684316,
+    "annualized_volatility": 0.2634922949877521,
+    "sharpe_ratio": 1.1305640295124766,
+    "max_drawdown": -0.37949712455981344,
+    "average_turnover": 0.028776715828926165,
+    "total_cost_bps_paid": 21.956634177470658,
+    "elapsed_seconds": 14.41
+  }
+]

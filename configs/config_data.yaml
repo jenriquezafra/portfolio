@@ -35,8 +35,9 @@ data:
   output_panel_path: data/processed/panel.parquet
 
 labels:
-  horizon_days: 5
-  target_column: fwd_return_5d
+  horizon_days: 15
+  target_column: fwd_return_15d_resid
+  target_mode: cross_sectional_demeaned
 
 preprocessing:
   min_history_days: 252

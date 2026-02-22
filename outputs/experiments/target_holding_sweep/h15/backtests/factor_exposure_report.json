@@ -1,0 +1,11 @@
+{
+  "ex_ante": {
+    "max_abs": {},
+    "mean": {}
+  },
+  "ex_post": {
+    "by_year": [],
+    "full_sample": {}
+  },
+  "factor_names": []
+}

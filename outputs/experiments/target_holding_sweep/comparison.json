@@ -1,0 +1,50 @@
+[
+  {
+    "horizon_days": 5,
+    "holding_days": 5,
+    "n_rebalances": 444,
+    "target_column": "fwd_return_5d_resid",
+    "oos_cs_ic_mean": 0.02647175245311643,
+    "oos_cs_ic_ir": 0.09405079499881466,
+    "oos_top_bottom_mean": 0.0028563859932406828,
+    "annualized_return": 0.3438296823384921,
+    "annualized_volatility": 0.3203525995373323,
+    "sharpe_ratio": 1.0732851328038744,
+    "weekly_sharpe_ratio": 1.1526951704720176,
+    "max_drawdown": -0.4922834589554539,
+    "average_turnover": 0.34846891087464626,
+    "total_cost_bps_paid": 1083.0413749984004
+  },
+  {
+    "horizon_days": 10,
+    "holding_days": 10,
+    "n_rebalances": 220,
+    "target_column": "fwd_return_10d_resid",
+    "oos_cs_ic_mean": -0.019444475200914673,
+    "oos_cs_ic_ir": -0.06963182233306185,
+    "oos_top_bottom_mean": -0.0058958868814212905,
+    "annualized_return": 0.2849455772642644,
+    "annualized_volatility": 0.30815937833711243,
+    "sharpe_ratio": 0.9246694966802107,
+    "weekly_sharpe_ratio": 0.9958179257035035,
+    "max_drawdown": -0.4944538075280748,
+    "average_turnover": 0.35,
+    "total_cost_bps_paid": 538.9999999999999
+  },
+  {
+    "horizon_days": 15,
+    "holding_days": 15,
+    "n_rebalances": 146,
+    "target_column": "fwd_return_15d_resid",
+    "oos_cs_ic_mean": -0.011846221342688949,
+    "oos_cs_ic_ir": -0.04469718089076122,
+    "oos_top_bottom_mean": -0.0064171669846267215,
+    "annualized_return": 0.3185930731648974,
+    "annualized_volatility": 0.3233799350773672,
+    "sharpe_ratio": 0.9851974059203007,
+    "weekly_sharpe_ratio": 1.0727331692996058,
+    "max_drawdown": -0.5465305305774728,
+    "average_turnover": 0.35000000000000003,
+    "total_cost_bps_paid": 357.69999999999993
+  }
+]

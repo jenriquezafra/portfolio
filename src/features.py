@@ -8,7 +8,7 @@ import pandas as pd
 from src.data import load_yaml
 
 REQUIRED_RAW_COLUMNS = ["date", "ticker", "open", "high", "low", "close", "adj_close", "volume"]
-FEATURE_COLUMNS = ["ret_1d", "ret_5d", "ret_20d", "vol_20d", "momentum_20_60"]
+FEATURE_COLUMNS = ["ret_1d", "ret_5d", "ret_20d", "vol_20d", "momentum_20_60", "momentum_x_vol_20"]
 
 
 def _validate_raw_schema(df: pd.DataFrame) -> None:
@@ -57,9 +57,12 @@ def build_feature_panel(
     clean_prices_df: pd.DataFrame,
     horizon_days: int = 5,
     target_column: str = "fwd_return_5d",
+    target_mode: str = "absolute",
 ) -> pd.DataFrame:
     if horizon_days <= 0:
         raise ValueError("`horizon_days` must be a positive integer.")
+    if target_mode not in {"absolute", "cross_sectional_demeaned"}:
+        raise ValueError("`target_mode` must be one of: `absolute`, `cross_sectional_demeaned`.")
 
     df = clean_prices_df.sort_values(["ticker", "date"]).copy()
     grouped = df.groupby("ticker", group_keys=False)
@@ -78,7 +81,15 @@ def build_feature_panel(
 
     # 60-to-20-day momentum excludes the latest month to reduce short-term reversal effects.
     df["momentum_20_60"] = grouped["adj_close"].shift(20) / grouped["adj_close"].shift(60) - 1.0
-    df[target_column] = grouped["adj_close"].shift(-horizon_days) / df["adj_close"] - 1.0
+    df["momentum_x_vol_20"] = df["momentum_20_60"] * df["vol_20d"]
+    df["fwd_return_raw"] = grouped["adj_close"].shift(-horizon_days) / df["adj_close"] - 1.0
+    if target_mode == "absolute":
+        df[target_column] = df["fwd_return_raw"]
+    else:
+        # De-mean on the modelable universe (rows with non-null features/label inputs) for each date.
+        modelable_mask = df[[*FEATURE_COLUMNS, "fwd_return_raw"]].notna().all(axis=1)
+        cross_mean = df["fwd_return_raw"].where(modelable_mask).groupby(df["date"], group_keys=False).transform("mean")
+        df[target_column] = df["fwd_return_raw"] - cross_mean
 
     keep_cols = [
         "date",
@@ -86,8 +97,10 @@ def build_feature_panel(
         "adj_close",
         "volume",
         *FEATURE_COLUMNS,
+        "fwd_return_raw",
         target_column,
     ]
+    keep_cols = list(dict.fromkeys(keep_cols))
     panel = (
         df[keep_cols]
         .dropna(subset=[*FEATURE_COLUMNS, target_column])
@@ -118,6 +131,7 @@ def run_build_panel(config_path: Path) -> tuple[pd.DataFrame, pd.DataFrame, Path
 
     horizon_days = labels_cfg.get("horizon_days", 5)
     target_column = labels_cfg.get("target_column", "fwd_return_5d")
+    target_mode = labels_cfg.get("target_mode", "absolute")
     min_history_days = pre_cfg.get("min_history_days", 252)
     drop_rows_without_adj_close = pre_cfg.get("drop_rows_without_adj_close", True)
 
@@ -125,6 +139,8 @@ def run_build_panel(config_path: Path) -> tuple[pd.DataFrame, pd.DataFrame, Path
         raise ValueError("`labels.horizon_days` must be an integer.")
     if not isinstance(target_column, str):
         raise ValueError("`labels.target_column` must be a string.")
+    if not isinstance(target_mode, str):
+        raise ValueError("`labels.target_mode` must be a string.")
     if not isinstance(min_history_days, int):
         raise ValueError("`preprocessing.min_history_days` must be an integer.")
     if not isinstance(drop_rows_without_adj_close, bool):
@@ -145,6 +161,7 @@ def run_build_panel(config_path: Path) -> tuple[pd.DataFrame, pd.DataFrame, Path
         clean_prices_df=clean_df,
         horizon_days=horizon_days,
         target_column=target_column,
+        target_mode=target_mode,
     )
 
     clean_path.parent.mkdir(parents=True, exist_ok=True)
