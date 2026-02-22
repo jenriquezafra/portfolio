@@ -1,6 +1,6 @@
 {
   "checks": {
-    "ex_ante_max_abs_ok": false,
+    "ex_ante_max_abs_ok": true,
     "ex_ante_mean_abs_ok": true,
     "ex_post_beta_abs_ok": true,
     "ex_post_beta_yearly_abs_ok": true,
@@ -9,39 +9,39 @@
   "context": {
     "allocation_method": "score_over_vol",
     "end_date": "2026-02-20",
-    "n_rebalances": 444,
+    "n_rebalances": 146,
     "portfolio_mode": "market_neutral",
-    "sharpe_ratio": -0.06514109785956762,
-    "start_date": "2017-04-19",
-    "weekly_sharpe_ratio": -0.06690920484583839
+    "sharpe_ratio": 0.3427354707436446,
+    "start_date": "2017-05-17",
+    "weekly_sharpe_ratio": 0.32655446351457856
   },
   "factor_names": [
     "nasdaq_proxy",
     "growth_proxy"
   ],
-  "generated_at_utc": "2026-02-22T17:50:19.493624+00:00",
+  "generated_at_utc": "2026-02-22T18:08:09.507377+00:00",
   "metrics": {
     "full_sample": {
-      "ex_ante_max_abs_worst": 0.35816638751141805,
-      "ex_ante_mean_abs_max": 0.0074405129105197376,
-      "ex_post_beta_abs_l1": 0.03755106867182347,
-      "ex_post_beta_abs_max": 0.03720470397243638,
-      "ex_post_r2": 0.005071984084479619
+      "ex_ante_max_abs_worst": 0.18807758009410513,
+      "ex_ante_mean_abs_max": 0.027724805161166557,
+      "ex_post_beta_abs_l1": 0.05165668920635909,
+      "ex_post_beta_abs_max": 0.03359205024635881,
+      "ex_post_r2": 0.03783806059910988
     },
     "yearly": {
-      "ex_post_beta_yearly_abs_max": 0.14163028451021303,
+      "ex_post_beta_yearly_abs_max": 0.21958210560319796,
       "min_obs_filter": 60,
       "yearly_sign_flip_counts": {
-        "growth_proxy": 2,
-        "nasdaq_proxy": 4
+        "growth_proxy": 3,
+        "nasdaq_proxy": 2
       }
     }
   },
   "recommendations": [
-    "Cap extreme ex-ante factor spikes: review quantiles/weight caps and turnover cap interaction.",
-    "Frequent yearly beta sign flips in: nasdaq_proxy."
+    "Factor diagnostics are within configured thresholds.",
+    "Frequent yearly beta sign flips in: growth_proxy."
   ],
-  "status": "warning",
+  "status": "pass",
   "thresholds": {
     "ex_ante_max_abs_max": 0.35,
     "ex_ante_mean_abs_max": 0.05,
