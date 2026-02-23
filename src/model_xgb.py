@@ -9,6 +9,7 @@ import pandas as pd
 from xgboost import XGBRegressor
 
 from src.data import load_yaml
+from src.features import _load_market_context_from_config, build_feature_panel, clean_prices
 
 
 def _as_timestamp(value: pd.Timestamp | str) -> pd.Timestamp:
@@ -53,6 +54,17 @@ def _make_model(params: dict[str, Any]) -> XGBRegressor:
     model_params = dict(params)
     model_params.setdefault("n_jobs", -1)
     return XGBRegressor(**model_params)
+
+
+def _cross_sectional_rank_zscore_target(frame: pd.DataFrame, target_column: str) -> pd.Series:
+    if frame.empty:
+        return pd.Series(dtype=float)
+    ranked = frame.groupby("date", group_keys=False)[target_column].rank(method="average")
+    grouped_rank = ranked.groupby(frame["date"], group_keys=False)
+    centered = ranked - grouped_rank.transform("mean")
+    std = grouped_rank.transform("std")
+    transformed = centered / std.replace(0.0, np.nan)
+    return transformed.fillna(0.0).astype(float)
 
 
 def _spearman_rank_corr(lhs: pd.Series | np.ndarray, rhs: pd.Series | np.ndarray) -> float | None:
@@ -106,6 +118,7 @@ def train_walk_forward_xgb(
     horizon_days: int,
     rebalance_frequency: str,
     rebalance_every_n_days: int | None = None,
+    training_target_transform: str = "none",
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[str, Any]]:
     if train_window_days <= 0:
         raise ValueError("`train_window_days` must be positive.")
@@ -113,6 +126,9 @@ def train_walk_forward_xgb(
         raise ValueError("`validation_window_days` must be non-negative.")
     if horizon_days <= 0:
         raise ValueError("`horizon_days` must be positive.")
+    transform = str(training_target_transform).lower()
+    if transform not in {"none", "cross_sectional_rank"}:
+        raise ValueError("`training_target_transform` must be one of: none, cross_sectional_rank.")
 
     _validate_panel(panel, features=features, target_column=target_column)
 
@@ -179,19 +195,30 @@ def train_walk_forward_xgb(
         if validation_window_days > 0 and val_df.empty:
             continue
 
+        if transform == "cross_sectional_rank":
+            y_train_series = _cross_sectional_rank_zscore_target(train_df, target_column=target_column)
+            y_val_series = (
+                _cross_sectional_rank_zscore_target(val_df, target_column=target_column)
+                if not val_df.empty
+                else pd.Series(dtype=float)
+            )
+        else:
+            y_train_series = train_df[target_column].astype(float)
+            y_val_series = val_df[target_column].astype(float) if not val_df.empty else pd.Series(dtype=float)
+
         current_params = dict(model_params)
         fit_kwargs: dict[str, Any] = {}
         if not val_df.empty:
             current_params.setdefault("early_stopping_rounds", 50)
             current_params.setdefault("eval_metric", "rmse")
-            fit_kwargs["eval_set"] = [(val_df[features].to_numpy(), val_df[target_column].to_numpy())]
+            fit_kwargs["eval_set"] = [(val_df[features].to_numpy(), y_val_series.to_numpy())]
             fit_kwargs["verbose"] = False
         else:
             current_params.pop("early_stopping_rounds", None)
 
         model = _make_model(current_params)
         x_train = train_df[features].to_numpy()
-        y_train = train_df[target_column].to_numpy()
+        y_train = y_train_series.to_numpy()
         model.fit(x_train, y_train, **fit_kwargs)
 
         test_pred = model.predict(test_df[features].to_numpy())
@@ -303,6 +330,7 @@ def train_walk_forward_xgb(
         "train_window_days": train_window_days,
         "validation_window_days": validation_window_days,
         "horizon_days": horizon_days,
+        "training_target_transform": transform,
     }
     return predictions, training_log, importances, summary
 
@@ -318,6 +346,7 @@ def run_train(
 
     data_section = data_cfg.get("data")
     labels_section = data_cfg.get("labels", {})
+    market_context_cfg = data_cfg.get("market_context", {})
     model_section = model_cfg.get("model")
     backtest_section = backtest_cfg.get("backtest")
 
@@ -325,6 +354,8 @@ def run_train(
         raise ValueError("Missing `data` section in config_data.yaml")
     if not isinstance(model_section, dict):
         raise ValueError("Missing `model` section in config_model.yaml")
+    if not isinstance(market_context_cfg, dict):
+        raise ValueError("`market_context` must be a mapping.")
     if not isinstance(backtest_section, dict):
         raise ValueError("Missing `backtest` section in config_backtest.yaml")
 
@@ -333,6 +364,7 @@ def run_train(
     target_column = labels_section.get("target_column", "fwd_return_5d")
     features = model_section.get("features", [])
     model_params = model_section.get("params", {})
+    training_target_transform = model_section.get("training_target_transform", "none")
 
     train_window_days = backtest_section.get("train_window_days", 756)
     validation_window_days = backtest_section.get("validation_window_days", 252)
@@ -349,6 +381,8 @@ def run_train(
         raise ValueError("`model.features` must be a list[str].")
     if not isinstance(model_params, dict):
         raise ValueError("`model.params` must be a mapping.")
+    if not isinstance(training_target_transform, str):
+        raise ValueError("`model.training_target_transform` must be a string.")
     if not isinstance(train_window_days, int):
         raise ValueError("`backtest.train_window_days` must be an integer.")
     if not isinstance(validation_window_days, int):
@@ -372,6 +406,7 @@ def run_train(
         horizon_days=horizon_days,
         rebalance_frequency=rebalance_frequency,
         rebalance_every_n_days=rebalance_every_n_days,
+        training_target_transform=training_target_transform,
     )
 
     out_dir = (project_root / "outputs/models").resolve()
@@ -398,3 +433,238 @@ def run_train(
         importance_path,
         summary_path,
     )
+
+
+def predict_latest_live_xgb(
+    panel: pd.DataFrame,
+    features: list[str],
+    target_column: str,
+    model_params: dict[str, Any],
+    training_target_transform: str = "none",
+) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, Any]]:
+    _validate_panel(panel=panel, features=features, target_column=target_column)
+    transform = str(training_target_transform).lower()
+    if transform not in {"none", "cross_sectional_rank"}:
+        raise ValueError("`training_target_transform` must be one of: none, cross_sectional_rank.")
+
+    df = panel.copy()
+    df["date"] = pd.to_datetime(df["date"], utc=False).dt.tz_localize(None)
+    df["ticker"] = df["ticker"].astype(str)
+    df = df.sort_values(["date", "ticker"]).reset_index(drop=True)
+
+    train_df = df[["date", "ticker", *features, target_column]].dropna(subset=[*features, target_column]).copy()
+    if train_df.empty:
+        raise ValueError("No training rows available for live inference after dropping missing values.")
+
+    live_date = pd.Timestamp(df["date"].max())
+    live_df = df[df["date"] == live_date][["date", "ticker", *features]].dropna(subset=features).copy()
+    if live_df.empty:
+        raise ValueError(f"No live rows available at latest panel date {live_date.date()}.")
+
+    current_params = dict(model_params)
+    # Live fitting uses full-sample labels without validation split.
+    current_params.pop("early_stopping_rounds", None)
+
+    if transform == "cross_sectional_rank":
+        y_train = _cross_sectional_rank_zscore_target(train_df, target_column=target_column)
+    else:
+        y_train = train_df[target_column].astype(float)
+
+    model = _make_model(current_params)
+    model.fit(train_df[features].to_numpy(), y_train.to_numpy())
+    live_pred = model.predict(live_df[features].to_numpy())
+
+    live_predictions = live_df[["date", "ticker"]].copy()
+    live_predictions["prediction"] = live_pred.astype(float)
+    live_predictions = live_predictions.sort_values(["date", "ticker"]).reset_index(drop=True)
+
+    if hasattr(model, "feature_importances_"):
+        importances = pd.DataFrame(
+            {
+                "date": pd.Timestamp(live_date),
+                "feature": features,
+                "importance": model.feature_importances_,
+            }
+        )
+    else:
+        importances = pd.DataFrame(columns=["date", "feature", "importance"])
+
+    summary: dict[str, Any] = {
+        "live_date": str(live_date.date()),
+        "n_live_assets": int(len(live_predictions)),
+        "train_start_date": str(pd.Timestamp(train_df["date"].min()).date()),
+        "train_end_date": str(pd.Timestamp(train_df["date"].max()).date()),
+        "n_train_rows": int(len(train_df)),
+        "features": features,
+        "target_column": target_column,
+        "model_params": current_params,
+        "training_target_transform": transform,
+    }
+    return live_predictions, importances, summary
+
+
+def _apply_live_market_context_fallback(
+    clean_prices_df: pd.DataFrame,
+    market_context_df: pd.DataFrame | None,
+    allow_fallback: bool,
+    max_stale_business_days: int,
+) -> tuple[pd.DataFrame | None, dict[str, Any]]:
+    meta: dict[str, Any] = {
+        "market_context_enabled": bool(market_context_df is not None and not market_context_df.empty),
+        "market_context_last_date": None,
+        "prices_last_date": None,
+        "market_context_stale_business_days": 0,
+        "market_context_fallback_applied": False,
+        "market_context_fallback_max_days": int(max_stale_business_days),
+    }
+    if market_context_df is None or market_context_df.empty:
+        return market_context_df, meta
+
+    if max_stale_business_days <= 0:
+        raise ValueError("`market_context.live_max_stale_days` must be a positive integer.")
+
+    prices = clean_prices_df[["date"]].copy()
+    prices["date"] = pd.to_datetime(prices["date"], utc=False).dt.tz_localize(None)
+    market_dates = pd.Series(prices["date"].sort_values().unique())
+    if market_dates.empty:
+        return market_context_df, meta
+
+    context = market_context_df.copy()
+    context["date"] = pd.to_datetime(context["date"], utc=False).dt.tz_localize(None)
+    context = context.sort_values("date").drop_duplicates(subset=["date"], keep="last").reset_index(drop=True)
+    if context.empty:
+        return context, meta
+
+    prices_last_date = pd.Timestamp(market_dates.max())
+    context_last_date = pd.Timestamp(context["date"].max())
+    missing_dates = market_dates[market_dates > context_last_date]
+    stale_business_days = int(len(missing_dates))
+
+    meta["market_context_last_date"] = str(context_last_date.date())
+    meta["prices_last_date"] = str(prices_last_date.date())
+    meta["market_context_stale_business_days"] = stale_business_days
+    if stale_business_days == 0:
+        return context, meta
+
+    if not allow_fallback:
+        return context, meta
+    if stale_business_days > max_stale_business_days:
+        raise ValueError(
+            "Market context is too stale for live inference: "
+            f"prices_last_date={prices_last_date.date()} context_last_date={context_last_date.date()} "
+            f"stale_business_days={stale_business_days} max_allowed={max_stale_business_days}."
+        )
+
+    feature_cols = [col for col in context.columns if col != "date"]
+    if not feature_cols:
+        return context, meta
+    last_row = context.iloc[-1]
+    extension = pd.DataFrame({"date": pd.to_datetime(missing_dates)})
+    for col in feature_cols:
+        extension[col] = last_row[col]
+
+    extended = pd.concat([context, extension], ignore_index=True)
+    extended = extended.sort_values("date").drop_duplicates(subset=["date"], keep="last").reset_index(drop=True)
+    meta["market_context_fallback_applied"] = True
+    return extended, meta
+
+
+def run_predict_live(
+    config_data_path: Path,
+    config_model_path: Path,
+) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, Any], Path, Path, Path]:
+    data_cfg = load_yaml(config_data_path)
+    model_cfg = load_yaml(config_model_path)
+
+    data_section = data_cfg.get("data")
+    labels_section = data_cfg.get("labels", {})
+    market_context_cfg = data_cfg.get("market_context", {})
+    model_section = model_cfg.get("model")
+
+    if not isinstance(data_section, dict):
+        raise ValueError("Missing `data` section in config_data.yaml")
+    if not isinstance(model_section, dict):
+        raise ValueError("Missing `model` section in config_model.yaml")
+    if not isinstance(market_context_cfg, dict):
+        raise ValueError("`market_context` must be a mapping.")
+
+    raw_rel = data_section.get("output_raw_path")
+    clean_rel = data_section.get("output_clean_path")
+    target_column = labels_section.get("target_column", "fwd_return_5d")
+    horizon_days = labels_section.get("horizon_days", 5)
+    target_mode = labels_section.get("target_mode", "absolute")
+    features = model_section.get("features", [])
+    model_params = model_section.get("params", {})
+    training_target_transform = model_section.get("training_target_transform", "none")
+    live_allow_stale_fallback = bool(market_context_cfg.get("live_allow_stale_fallback", True))
+    live_max_stale_days = int(market_context_cfg.get("live_max_stale_days", 3))
+
+    if not isinstance(raw_rel, str):
+        raise ValueError("`data.output_raw_path` must be a string path.")
+    if not isinstance(clean_rel, str):
+        raise ValueError("`data.output_clean_path` must be a string path.")
+    if not isinstance(target_column, str):
+        raise ValueError("`labels.target_column` must be a string.")
+    if not isinstance(horizon_days, int):
+        raise ValueError("`labels.horizon_days` must be an integer.")
+    if not isinstance(target_mode, str):
+        raise ValueError("`labels.target_mode` must be a string.")
+    if not isinstance(features, list) or not all(isinstance(col, str) for col in features):
+        raise ValueError("`model.features` must be a list[str].")
+    if not isinstance(model_params, dict):
+        raise ValueError("`model.params` must be a mapping.")
+    if not isinstance(training_target_transform, str):
+        raise ValueError("`model.training_target_transform` must be a string.")
+
+    project_root = config_data_path.parents[1]
+    raw_path = (project_root / raw_rel).resolve()
+    clean_path = (project_root / clean_rel).resolve()
+
+    if clean_path.exists():
+        clean_df = pd.read_parquet(clean_path)
+    else:
+        raw_df = pd.read_parquet(raw_path)
+        clean_df = clean_prices(raw_df)
+
+    market_context_df = _load_market_context_from_config(
+        project_root=project_root,
+        market_context_cfg=market_context_cfg,
+    )
+    market_context_df, context_meta = _apply_live_market_context_fallback(
+        clean_prices_df=clean_df,
+        market_context_df=market_context_df,
+        allow_fallback=live_allow_stale_fallback,
+        max_stale_business_days=live_max_stale_days,
+    )
+
+    panel_df = build_feature_panel(
+        clean_prices_df=clean_df,
+        horizon_days=horizon_days,
+        target_column=target_column,
+        target_mode=target_mode,
+        market_context_df=market_context_df,
+        drop_target_na=False,
+    )
+
+    predictions, importances, summary = predict_latest_live_xgb(
+        panel=panel_df,
+        features=features,
+        target_column=target_column,
+        model_params=model_params,
+        training_target_transform=training_target_transform,
+    )
+    summary.update(context_meta)
+    summary["market_context_live_allow_stale_fallback"] = bool(live_allow_stale_fallback)
+
+    out_dir = (project_root / "outputs/models").resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
+    predictions_path = out_dir / "predictions_live.parquet"
+    importance_path = out_dir / "feature_importance_live.parquet"
+    summary_path = out_dir / "predict_live_summary.json"
+
+    predictions.to_parquet(predictions_path, index=False)
+    importances.to_parquet(importance_path, index=False)
+    with summary_path.open("w", encoding="utf-8") as fh:
+        json.dump(summary, fh, indent=2, sort_keys=True)
+
+    return predictions, importances, summary, predictions_path, importance_path, summary_path

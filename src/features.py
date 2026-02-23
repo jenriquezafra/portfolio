@@ -3,12 +3,35 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 from src.data import load_yaml
 
 REQUIRED_RAW_COLUMNS = ["date", "ticker", "open", "high", "low", "close", "adj_close", "volume"]
-FEATURE_COLUMNS = ["ret_1d", "ret_5d", "ret_20d", "vol_20d", "momentum_20_60", "momentum_x_vol_20"]
+FEATURE_COLUMNS = [
+    "ret_1d",
+    "ret_2d",
+    "ret_5d",
+    "ret_10d",
+    "ret_20d",
+    "ret_63d",
+    "vol_5d",
+    "vol_20d",
+    "vol_60d",
+    "vol_ratio_20_60",
+    "downside_vol_20d",
+    "upside_vol_20d",
+    "momentum_20_60",
+    "momentum_5_20",
+    "momentum_x_vol_20",
+    "reversal_1_5",
+    "overnight_gap_1d",
+    "intraday_return_1d",
+    "high_low_range_1d",
+    "dollar_volume_log_20d",
+    "dollar_volume_z_60d",
+]
 
 
 def _validate_raw_schema(df: pd.DataFrame) -> None:
@@ -59,6 +82,7 @@ def build_feature_panel(
     target_column: str = "fwd_return_5d",
     target_mode: str = "absolute",
     market_context_df: pd.DataFrame | None = None,
+    drop_target_na: bool = True,
 ) -> pd.DataFrame:
     if horizon_days <= 0:
         raise ValueError("`horizon_days` must be a positive integer.")
@@ -69,12 +93,43 @@ def build_feature_panel(
     grouped = df.groupby("ticker", group_keys=False)
 
     df["ret_1d"] = grouped["adj_close"].pct_change(periods=1)
+    df["ret_2d"] = grouped["adj_close"].pct_change(periods=2)
     df["ret_5d"] = grouped["adj_close"].pct_change(periods=5)
+    df["ret_10d"] = grouped["adj_close"].pct_change(periods=10)
     df["ret_20d"] = grouped["adj_close"].pct_change(periods=20)
+    df["ret_63d"] = grouped["adj_close"].pct_change(periods=63)
 
     daily_ret = grouped["adj_close"].pct_change(periods=1)
+    df["vol_5d"] = (
+        daily_ret.groupby(df["ticker"])
+        .rolling(window=5, min_periods=5)
+        .std()
+        .reset_index(level=0, drop=True)
+    )
     df["vol_20d"] = (
         daily_ret.groupby(df["ticker"])
+        .rolling(window=20, min_periods=20)
+        .std()
+        .reset_index(level=0, drop=True)
+    )
+    df["vol_60d"] = (
+        daily_ret.groupby(df["ticker"])
+        .rolling(window=60, min_periods=60)
+        .std()
+        .reset_index(level=0, drop=True)
+    )
+    df["vol_ratio_20_60"] = df["vol_20d"] / df["vol_60d"]
+
+    downside_ret = daily_ret.clip(upper=0.0)
+    upside_ret = daily_ret.clip(lower=0.0)
+    df["downside_vol_20d"] = (
+        downside_ret.groupby(df["ticker"])
+        .rolling(window=20, min_periods=20)
+        .std()
+        .reset_index(level=0, drop=True)
+    )
+    df["upside_vol_20d"] = (
+        upside_ret.groupby(df["ticker"])
         .rolling(window=20, min_periods=20)
         .std()
         .reset_index(level=0, drop=True)
@@ -82,8 +137,49 @@ def build_feature_panel(
 
     # 60-to-20-day momentum excludes the latest month to reduce short-term reversal effects.
     df["momentum_20_60"] = grouped["adj_close"].shift(20) / grouped["adj_close"].shift(60) - 1.0
+    # 20-to-5-day momentum excludes the latest week.
+    df["momentum_5_20"] = grouped["adj_close"].shift(5) / grouped["adj_close"].shift(20) - 1.0
     df["momentum_x_vol_20"] = df["momentum_20_60"] * df["vol_20d"]
+    df["reversal_1_5"] = df["ret_1d"] - df["ret_5d"]
+
+    prev_close = grouped["close"].shift(1)
+    df["overnight_gap_1d"] = df["open"] / prev_close - 1.0
+    df["intraday_return_1d"] = df["close"] / df["open"] - 1.0
+    df["high_low_range_1d"] = (df["high"] - df["low"]) / df["adj_close"]
+
+    df["dollar_volume_1d"] = df["adj_close"] * df["volume"]
+    df["dollar_volume_20d"] = (
+        df.groupby("ticker", group_keys=False)["dollar_volume_1d"]
+        .rolling(window=20, min_periods=20)
+        .mean()
+        .reset_index(level=0, drop=True)
+    )
+    df["dollar_volume_log_20d"] = np.log1p(df["dollar_volume_20d"])
+    dv_mean_60d = (
+        df.groupby("ticker", group_keys=False)["dollar_volume_log_20d"]
+        .rolling(window=60, min_periods=20)
+        .mean()
+        .reset_index(level=0, drop=True)
+    )
+    dv_std_60d = (
+        df.groupby("ticker", group_keys=False)["dollar_volume_log_20d"]
+        .rolling(window=60, min_periods=20)
+        .std()
+        .reset_index(level=0, drop=True)
+    )
+    df["dollar_volume_z_60d"] = (df["dollar_volume_log_20d"] - dv_mean_60d) / dv_std_60d
+
+    # Clean numerical artifacts before dropping NaNs.
+    numeric_cols = [
+        "vol_ratio_20_60",
+        "overnight_gap_1d",
+        "intraday_return_1d",
+        "high_low_range_1d",
+        "dollar_volume_z_60d",
+    ]
+    df[numeric_cols] = df[numeric_cols].replace([np.inf, -np.inf], np.nan)
     df["fwd_return_raw"] = grouped["adj_close"].shift(-horizon_days) / df["adj_close"] - 1.0
+
     extra_feature_cols: list[str] = []
     if market_context_df is not None and not market_context_df.empty:
         if "date" not in market_context_df.columns:
@@ -114,12 +210,8 @@ def build_feature_panel(
         target_column,
     ]
     keep_cols = list(dict.fromkeys(keep_cols))
-    panel = (
-        df[keep_cols]
-        .dropna(subset=[*model_feature_cols, target_column])
-        .sort_values(["date", "ticker"])
-        .reset_index(drop=True)
-    )
+    drop_subset = [*model_feature_cols, target_column] if drop_target_na else [*model_feature_cols]
+    panel = df[keep_cols].dropna(subset=drop_subset).sort_values(["date", "ticker"]).reset_index(drop=True)
     return panel
 
 

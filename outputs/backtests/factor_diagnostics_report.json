@@ -7,16 +7,16 @@
     "ex_post_r2_ok": true
   },
   "context": {
-    "allocation_method": "score_over_vol",
-    "end_date": "2026-02-20",
-    "n_rebalances": 146,
+    "allocation_method": "mean_variance",
+    "end_date": "2026-02-23",
+    "n_rebalances": 109,
     "portfolio_mode": "long_only",
-    "sharpe_ratio": 1.1449620165326495,
-    "start_date": "2017-05-17",
-    "weekly_sharpe_ratio": 1.200457521101142
+    "sharpe_ratio": 1.4741591881064429,
+    "start_date": "2017-06-13",
+    "weekly_sharpe_ratio": 1.5604359841437416
   },
   "factor_names": [],
-  "generated_at_utc": "2026-02-22T22:06:51.508777+00:00",
+  "generated_at_utc": "2026-02-23T22:27:47.493450+00:00",
   "metrics": {
     "full_sample": {
       "ex_ante_max_abs_worst": null,

@@ -1,0 +1,20 @@
+model:
+  name: xgboost_regressor
+  training_target_transform: none
+  features:
+    - ret_1d
+    - ret_5d
+    - ret_20d
+    - vol_20d
+    - momentum_20_60
+    - momentum_x_vol_20
+    - mkt_nasdaq_proxy_lag1
+    - mkt_growth_proxy_lag1
+  params:
+    n_estimators: 300
+    max_depth: 4
+    learning_rate: 0.03
+    subsample: 0.8
+    colsample_bytree: 0.8
+    objective: reg:squarederror
+    random_state: 42

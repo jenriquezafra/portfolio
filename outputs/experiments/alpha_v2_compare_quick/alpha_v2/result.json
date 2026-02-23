@@ -1,0 +1,21 @@
+{
+  "scenario": "alpha_v2",
+  "requested_universe_size": 50,
+  "panel_rows": 114606,
+  "n_rebalances_train": 146,
+  "training_target_transform": "cross_sectional_rank",
+  "oos_cs_ic_mean": 0.040734301401086054,
+  "oos_cs_ic_ir": 0.21045637437006653,
+  "oos_top_bottom_mean": 0.011379538457149055,
+  "oos_top_bottom_tstat": 2.823169257666285,
+  "annualized_return": 0.40968038432350995,
+  "annualized_volatility": 0.31013271788935326,
+  "sharpe_ratio": 1.3209840842064027,
+  "weekly_sharpe_ratio": 1.3669818564642031,
+  "max_drawdown": -0.36646536653672834,
+  "average_turnover": 0.24721089752691836,
+  "total_cost_bps_paid": 252.64953727251057,
+  "signal_quality_gate_enabled": true,
+  "average_signal_gate_multiplier": 0.9376712328767122,
+  "signal_gate_active_rate": 0.0958904109589041
+}

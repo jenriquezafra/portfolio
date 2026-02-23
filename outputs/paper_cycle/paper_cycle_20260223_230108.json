@@ -1,0 +1,40 @@
+{
+  "apply": false,
+  "config_paths": {
+    "config_backtest": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/configs/config_backtest.yaml",
+    "config_data": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/configs/config_data.yaml",
+    "config_execution": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/configs/config_execution.yaml",
+    "config_model": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/configs/config_model.yaml",
+    "recommendation_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/run_all/recommendation.json"
+  },
+  "generated_at_utc": "2026-02-23T23:01:08+00:00",
+  "rebalance": {
+    "apply": false,
+    "broker": "paper",
+    "mode": "paper",
+    "n_orders": 26,
+    "orders_file": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/execution/rebalance_2026-02-23_20260223_230108_orders.csv",
+    "portfolio_turnover_estimate": 0.35000000000000003,
+    "rebalance_date_used": "2026-02-23",
+    "summary_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/execution/rebalance_2026-02-23_20260223_230108_summary.json",
+    "weights_source_meta": {
+      "backtest_rebalance_date": "2026-01-14",
+      "latest_clean_prices_date": "2026-02-23",
+      "live_signal_date": "2026-02-23",
+      "recommendation_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/run_all/recommendation.json",
+      "recommended_strategy": "long_only",
+      "signal_age_business_days": 0,
+      "weights_csv": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/run_all/recommended_weights_long_only_2026-02-23.csv",
+      "weights_source": "run_all"
+    }
+  },
+  "recommendation": {
+    "live_signal_date": "2026-02-23",
+    "rebalance_date": "2026-01-14",
+    "recommended_strategy": "long_only",
+    "recommended_weights_backtest_csv": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/run_all/recommended_weights_backtest_long_only_2026-01-14.csv",
+    "recommended_weights_csv": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/run_all/recommended_weights_long_only_2026-02-23.csv"
+  },
+  "skip_run_all": true,
+  "started_at_utc": "2026-02-23T23:01:07+00:00"
+}

@@ -1,0 +1,46 @@
+{
+  "checks": {
+    "ex_ante_max_abs_ok": true,
+    "ex_ante_mean_abs_ok": true,
+    "ex_post_beta_abs_ok": true,
+    "ex_post_beta_yearly_abs_ok": true,
+    "ex_post_r2_ok": true
+  },
+  "context": {
+    "allocation_method": "mean_variance",
+    "end_date": "2026-02-20",
+    "n_rebalances": 146,
+    "portfolio_mode": "long_only",
+    "sharpe_ratio": 1.3209840842064027,
+    "start_date": "2017-05-22",
+    "weekly_sharpe_ratio": 1.3669818564642031
+  },
+  "factor_names": [],
+  "generated_at_utc": "2026-02-23T12:01:45.125801+00:00",
+  "metrics": {
+    "full_sample": {
+      "ex_ante_max_abs_worst": null,
+      "ex_ante_mean_abs_max": null,
+      "ex_post_beta_abs_l1": null,
+      "ex_post_beta_abs_max": null,
+      "ex_post_r2": null
+    },
+    "yearly": {
+      "ex_post_beta_yearly_abs_max": null,
+      "min_obs_filter": 60,
+      "yearly_sign_flip_counts": {}
+    }
+  },
+  "recommendations": [
+    "No factor diagnostics available. Enable beta_neutralization factors in backtest config."
+  ],
+  "status": "missing_factors",
+  "thresholds": {
+    "ex_ante_max_abs_max": 0.35,
+    "ex_ante_mean_abs_max": 0.05,
+    "ex_post_beta_abs_max": 0.15,
+    "ex_post_beta_yearly_abs_max": 0.35,
+    "ex_post_r2_max": 0.15,
+    "yearly_min_obs": 60.0
+  }
+}

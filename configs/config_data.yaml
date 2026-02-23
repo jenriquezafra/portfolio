@@ -7,29 +7,54 @@ data:
   universe:
     - AAPL
     - MSFT
+    - AMZN
+    - GOOGL
+    - META
+    - ORCL
     - NVDA
+    - AMD
     - AVGO
     - ASML
-    - AMD
-    - ORCL
-    - CRM
-    - PANW
-    - QCOM
+    - TSM
     - AMAT
-    - GOOGL
-    - UNH
-    - JNJ
-    - JPM
-    - BAC
-    - XOM
-    - CAT
-    - HON
-    - LIN
-    - PG
+    - LRCX
+    - KLAC
+    - MU
+    - ARM
+    - CRWD
+    - PANW
+    - ZS
+    - NET
+    - DDOG
+    - NOW
+    - PLTR
+    - SNOW
+    - MDB
+    - CSCO
+    - INTC
+    - QCOM
+    - TXN
+    - ADI
+    - MCHP
+    - NXPI
+    - MRVL
+    - "ON"
+    - CDNS
+    - SNPS
+    - ANET
+    - FTNT
+    - ADBE
+    - CRM
+    - INTU
+    - TEAM
+    - PYPL
+    - UBER
+    - NFLX
     - COST
-    - HD
-    - NEE
-    - AMT
+    - PEP
+    - AMGN
+    - GILD
+    - ISRG
   output_raw_path: data/raw/prices.parquet
   output_clean_path: data/processed/prices_clean.parquet
   output_panel_path: data/processed/panel.parquet
@@ -51,3 +76,5 @@ market_context:
     - growth_proxy
   feature_prefix: mkt
   lag_days: 1
+  live_allow_stale_fallback: true
+  live_max_stale_days: 3

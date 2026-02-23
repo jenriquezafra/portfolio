@@ -1,0 +1,59 @@
+backtest:
+  train_window_days: 756
+  validation_window_days: 252
+  rebalance_frequency: every_n_days
+  rebalance_every_n_days: 10
+  risk_lookback_days: 60
+  risk_shrinkage: 0.1
+  signal_transform:
+    cross_sectional_rank_zscore: true
+  portfolio:
+    mode: long_only
+    long_quantile: 0.2
+    short_quantile: 0.2
+    gross_exposure_target: 1.0
+    vol_lookback_days: 60
+    beta_neutralization:
+      enabled: false
+      frequency: weekly
+      lookback_days: 126
+      target_factor_exposures:
+        nasdaq_proxy: 0.0
+        growth_proxy: 0.0
+      factors:
+      - name: nasdaq_proxy
+        source: file
+        path: data/external/factors/factors_qqq_iwf_iwd.parquet
+        return_column: nasdaq_proxy
+      - name: growth_proxy
+        source: file
+        path: data/external/factors/factors_qqq_iwf_iwd.parquet
+        return_column: growth_proxy
+  costs:
+    bps_per_side: 5.0
+    slippage_bps: 2.0
+  constraints:
+    long_only: true
+    fully_invested: true
+    weight_max: 0.2
+  objective:
+    allocation_method: mean_variance
+    risk_aversion_lambda: 15.0
+    turnover_penalty_eta: 5.0
+  risk_overlay:
+    enabled: false
+    vol_target_annual: 0.18
+    realized_vol_lookback_days: 63
+    min_leverage: 0.35
+    max_leverage: 1.0
+    drawdown_de_risk:
+      enabled: true
+      drawdown_trigger: -0.1
+      leverage_multiplier: 0.5
+  signal_quality_gate:
+    enabled: true
+    metric: oos_cs_ic_spearman
+    lookback_rebalances: 20
+    min_history_rebalances: 6
+    threshold: 0.0
+    bad_state_multiplier: 0.6

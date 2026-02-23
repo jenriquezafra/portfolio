@@ -38,7 +38,7 @@ data:
     - MCHP
     - NXPI
     - MRVL
-    - ON
+    - "ON"
     - CDNS
     - SNPS
     - ANET
@@ -76,3 +76,5 @@ market_context:
     - growth_proxy
   feature_prefix: mkt
   lag_days: 1
+  live_allow_stale_fallback: true
+  live_max_stale_days: 3

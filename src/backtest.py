@@ -84,6 +84,7 @@ def _compute_summary(
     allocation_method: str,
     use_rank_zscore: bool,
     beta_neutralization_enabled: bool,
+    signal_quality_gate_enabled: bool,
 ) -> dict[str, Any]:
     if daily_returns.empty:
         raise ValueError("Backtest produced no daily returns.")
@@ -127,6 +128,7 @@ def _compute_summary(
         "allocation_method": allocation_method,
         "signal_rank_zscore": bool(use_rank_zscore),
         "beta_neutralization_enabled": bool(beta_neutralization_enabled),
+        "signal_quality_gate_enabled": bool(signal_quality_gate_enabled),
     }
     if "risk_overlay_leverage" in rebalance_log.columns:
         lev = pd.to_numeric(rebalance_log["risk_overlay_leverage"], errors="coerce").dropna()
@@ -153,6 +155,12 @@ def _compute_summary(
                 only_name = next(iter(mean_map.keys()))
                 summary["average_ex_ante_beta_to_factor"] = float(mean_map[only_name])
                 summary["max_abs_ex_ante_beta_to_factor"] = float(max_abs_map[only_name])
+    if "signal_gate_multiplier" in rebalance_log.columns:
+        gate_mult = pd.to_numeric(rebalance_log["signal_gate_multiplier"], errors="coerce").dropna()
+        if not gate_mult.empty:
+            summary["average_signal_gate_multiplier"] = float(gate_mult.mean())
+            summary["min_signal_gate_multiplier"] = float(gate_mult.min())
+            summary["signal_gate_active_rate"] = float((gate_mult < 0.999999).mean())
     return summary
 
 
@@ -219,6 +227,31 @@ def _compute_overlay_leverage(
 
     leverage = float(np.clip(leverage, min_leverage, max_leverage))
     return leverage, realized_vol_annual, running_drawdown
+
+
+def _build_signal_quality_lookup(
+    training_log: pd.DataFrame,
+    metric_col: str,
+    lookback_rebalances: int,
+    min_history_rebalances: int,
+) -> dict[pd.Timestamp, float]:
+    if training_log.empty or metric_col not in training_log.columns:
+        return {}
+    if lookback_rebalances <= 0 or min_history_rebalances <= 0:
+        return {}
+
+    log = training_log.copy()
+    log["rebalance_date"] = pd.to_datetime(log["rebalance_date"], utc=False).dt.tz_localize(None)
+    log = log.sort_values("rebalance_date").dropna(subset=["rebalance_date"]).reset_index(drop=True)
+    metric_series = pd.to_numeric(log[metric_col], errors="coerce")
+
+    out: dict[pd.Timestamp, float] = {}
+    for i, row in log.iterrows():
+        hist = metric_series.iloc[max(0, i - lookback_rebalances) : i].dropna()
+        if len(hist) < min_history_rebalances:
+            continue
+        out[pd.Timestamp(row["rebalance_date"])] = float(hist.mean())
+    return out
 
 
 def _build_universe_growth_proxy_returns(
@@ -655,6 +688,7 @@ def run_backtest(
     constraints_cfg = backtest_section.get("constraints", {})
     objective_cfg = backtest_section.get("objective", {})
     risk_overlay_cfg = backtest_section.get("risk_overlay", {})
+    gate_cfg = backtest_section.get("signal_quality_gate", {})
 
     if not isinstance(signal_cfg, dict):
         raise ValueError("`backtest.signal_transform` must be a mapping.")
@@ -664,6 +698,8 @@ def run_backtest(
         raise ValueError("`backtest.portfolio.beta_neutralization` must be a mapping.")
     if not isinstance(risk_overlay_cfg, dict):
         raise ValueError("`backtest.risk_overlay` must be a mapping.")
+    if not isinstance(gate_cfg, dict):
+        raise ValueError("`backtest.signal_quality_gate` must be a mapping.")
 
     long_only_default = bool(constraints_cfg.get("long_only", True))
     portfolio_mode = str(portfolio_cfg.get("mode", "long_only" if long_only_default else "market_neutral")).lower()
@@ -700,6 +736,13 @@ def run_backtest(
     overlay_dd_trigger = float(overlay_dd_cfg.get("drawdown_trigger", -0.10))
     overlay_dd_multiplier = float(overlay_dd_cfg.get("leverage_multiplier", 0.5))
 
+    gate_enabled = bool(gate_cfg.get("enabled", False))
+    gate_metric = str(gate_cfg.get("metric", "oos_cs_ic_spearman"))
+    gate_lookback = int(gate_cfg.get("lookback_rebalances", 20))
+    gate_min_history = int(gate_cfg.get("min_history_rebalances", 8))
+    gate_threshold = float(gate_cfg.get("threshold", 0.0))
+    gate_bad_state_multiplier = float(gate_cfg.get("bad_state_multiplier", 0.35))
+
     if overlay_vol_lookback < 2:
         raise ValueError("`backtest.risk_overlay.realized_vol_lookback_days` must be >= 2.")
     if overlay_min_leverage < 0:
@@ -712,6 +755,14 @@ def run_backtest(
         raise ValueError("`backtest.risk_overlay.drawdown_de_risk.drawdown_trigger` must be negative.")
     if overlay_dd_multiplier < 0:
         raise ValueError("`backtest.risk_overlay.drawdown_de_risk.leverage_multiplier` must be >= 0.")
+    if gate_lookback <= 0:
+        raise ValueError("`backtest.signal_quality_gate.lookback_rebalances` must be positive.")
+    if gate_min_history <= 0:
+        raise ValueError("`backtest.signal_quality_gate.min_history_rebalances` must be positive.")
+    if gate_bad_state_multiplier < 0:
+        raise ValueError("`backtest.signal_quality_gate.bad_state_multiplier` must be >= 0.")
+    if gate_bad_state_multiplier > 1:
+        raise ValueError("`backtest.signal_quality_gate.bad_state_multiplier` must be <= 1.")
 
     max_turnover = risk_controls.get("max_turnover_per_rebalance")
     if max_turnover is not None:
@@ -745,6 +796,20 @@ def run_backtest(
 
     returns_wide = pivot_returns(build_daily_returns(clean_prices))
     returns_dates = pd.Series(returns_wide.index.to_list())
+
+    signal_quality_lookup: dict[pd.Timestamp, float] = {}
+    if gate_enabled:
+        training_log_path = (project_root / "outputs/models/training_log.parquet").resolve()
+        if training_log_path.exists():
+            training_log_df = pd.read_parquet(training_log_path)
+            signal_quality_lookup = _build_signal_quality_lookup(
+                training_log=training_log_df,
+                metric_col=gate_metric,
+                lookback_rebalances=gate_lookback,
+                min_history_rebalances=gate_min_history,
+            )
+        else:
+            gate_enabled = False
 
     factor_returns: pd.DataFrame | None = None
     factor_target_exposures: pd.Series | None = None
@@ -818,6 +883,13 @@ def run_backtest(
 
         prev_sub = prev_weights.reindex(tickers).fillna(0.0)
         ex_ante_factor_map: dict[str, float] = {}
+        gate_metric_value = signal_quality_lookup.get(pd.Timestamp(rebalance_date))
+        gate_multiplier = 1.0
+        gate_active = False
+        if gate_enabled and gate_metric_value is not None and gate_metric_value < gate_threshold:
+            gate_multiplier = gate_bad_state_multiplier
+            gate_active = gate_multiplier < 0.999999
+
         overlay_leverage, overlay_realized_vol, overlay_running_dd = _compute_overlay_leverage(
             returns_history=realized_net_returns,
             enabled=overlay_enabled,
@@ -893,6 +965,8 @@ def run_backtest(
 
         if overlay_enabled:
             target = target * float(overlay_leverage)
+        if gate_multiplier != 1.0:
+            target = target * float(gate_multiplier)
 
         final_w, turnover = apply_turnover_cap(
             target_weights=target,
@@ -955,6 +1029,10 @@ def run_backtest(
                 None if overlay_realized_vol is None else float(overlay_realized_vol)
             ),
             "risk_overlay_running_drawdown": float(overlay_running_dd),
+            "signal_gate_metric": (None if gate_metric_value is None else float(gate_metric_value)),
+            "signal_gate_threshold": float(gate_threshold),
+            "signal_gate_active": bool(gate_active),
+            "signal_gate_multiplier": float(gate_multiplier),
         }
         for name, value in ex_ante_factor_map.items():
             log_row[f"ex_ante_factor_{name}"] = float(value)
@@ -976,6 +1054,7 @@ def run_backtest(
         allocation_method=allocation_method,
         use_rank_zscore=use_rank_zscore,
         beta_neutralization_enabled=beta_neutralization_enabled,
+        signal_quality_gate_enabled=gate_enabled,
     )
     subperiod_report = _build_subperiod_report(
         daily_returns=daily_returns,

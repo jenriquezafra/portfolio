@@ -28,6 +28,31 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--config-backtest", type=Path, default=Path("configs/config_backtest.yaml"))
     parser.add_argument("--config-execution", type=Path, default=Path("configs/config_execution.yaml"))
     parser.add_argument(
+        "--weights-source",
+        type=str,
+        default="backtest",
+        choices=["backtest", "run_all"],
+        help="Source for target weights: backtest history or latest run_all live recommendation.",
+    )
+    parser.add_argument(
+        "--recommendation-path",
+        type=Path,
+        default=Path("outputs/run_all/recommendation.json"),
+        help="Used when --weights-source=run_all.",
+    )
+    parser.add_argument(
+        "--weights-csv",
+        type=Path,
+        default=None,
+        help="Optional explicit weights CSV path (overrides recommendation artifact path).",
+    )
+    parser.add_argument(
+        "--max-signal-age-business-days",
+        type=int,
+        default=3,
+        help="Reject run_all weights if live signal is older than this many business days vs latest clean prices date.",
+    )
+    parser.add_argument(
         "--as-of-date",
         type=str,
         default=None,
@@ -77,6 +102,64 @@ def _load_target_weights(weights_path: Path, as_of_date: str | None) -> tuple[pd
     if target.empty:
         raise ValueError(f"No target weights found for {target_date.date()}.")
     return target_date, target
+
+
+def _business_days_between(start_date: pd.Timestamp, end_date: pd.Timestamp) -> int:
+    start = pd.Timestamp(start_date).normalize()
+    end = pd.Timestamp(end_date).normalize()
+    if end <= start:
+        return 0
+    return max(0, int(len(pd.bdate_range(start=start, end=end)) - 1))
+
+
+def _load_target_weights_from_run_all(
+    recommendation_path: Path,
+    weights_csv: Path | None,
+) -> tuple[pd.Timestamp, pd.Series, dict[str, Any]]:
+    if not recommendation_path.exists():
+        raise FileNotFoundError(f"Missing recommendation file: {recommendation_path}")
+    recommendation = json.loads(recommendation_path.read_text(encoding="utf-8"))
+
+    signal_date_raw = recommendation.get("live_signal_date")
+    if signal_date_raw is None:
+        raise ValueError(
+            "Recommendation file does not include `live_signal_date`. "
+            "Re-run scripts/05_run_all.py to generate live recommendation artifacts."
+        )
+    signal_date = pd.Timestamp(signal_date_raw).tz_localize(None)
+
+    if weights_csv is None:
+        artifacts = recommendation.get("artifacts", {})
+        if not isinstance(artifacts, dict):
+            raise ValueError("Invalid `artifacts` block in recommendation file.")
+        csv_raw = artifacts.get("recommended_weights_csv")
+        if not isinstance(csv_raw, str):
+            raise ValueError("Recommendation file missing `artifacts.recommended_weights_csv`.")
+        weights_csv = Path(csv_raw)
+    if not weights_csv.is_absolute():
+        weights_csv = (PROJECT_ROOT / weights_csv).resolve()
+    if not weights_csv.exists():
+        raise FileNotFoundError(f"Missing weights CSV: {weights_csv}")
+
+    weights_df = pd.read_csv(weights_csv)
+    if "ticker" not in weights_df.columns or "weight" not in weights_df.columns:
+        raise ValueError("Weights CSV must contain `ticker` and `weight` columns.")
+    target = weights_df[["ticker", "weight"]].copy()
+    target["ticker"] = target["ticker"].astype(str)
+    target["weight"] = pd.to_numeric(target["weight"], errors="coerce")
+    target = target.dropna(subset=["weight"]).set_index("ticker")["weight"].astype(float).sort_index()
+    if target.empty:
+        raise ValueError("Weights CSV resolved to an empty target vector.")
+
+    meta = {
+        "weights_source": "run_all",
+        "recommendation_path": str(recommendation_path),
+        "weights_csv": str(weights_csv),
+        "recommended_strategy": recommendation.get("recommended_strategy"),
+        "live_signal_date": str(signal_date.date()),
+        "backtest_rebalance_date": recommendation.get("rebalance_date"),
+    }
+    return signal_date, target, meta
 
 
 def _snapshot_to_series(snapshot: AccountSnapshot) -> pd.Series:
@@ -271,8 +354,47 @@ def main() -> None:
     kill_switch_enabled = bool(risk_controls.get("kill_switch_enabled", True))
 
     as_of_date = None if args.as_of_date is None else pd.Timestamp(args.as_of_date).tz_localize(None)
-    weights_path = (PROJECT_ROOT / "outputs/backtests/weights_history.parquet").resolve()
-    rebalance_date, target_weights_raw = _load_target_weights(weights_path=weights_path, as_of_date=args.as_of_date)
+    if args.max_signal_age_business_days <= 0:
+        raise ValueError("`--max-signal-age-business-days` must be positive.")
+
+    weights_source_meta: dict[str, Any] = {}
+    if args.weights_source == "backtest":
+        weights_path = (PROJECT_ROOT / "outputs/backtests/weights_history.parquet").resolve()
+        rebalance_date, target_weights_raw = _load_target_weights(weights_path=weights_path, as_of_date=args.as_of_date)
+        weights_source_meta = {
+            "weights_source": "backtest",
+            "weights_history_path": str(weights_path),
+        }
+    else:
+        if args.as_of_date is not None:
+            raise ValueError("`--as-of-date` is only supported with `--weights-source=backtest`.")
+        explicit_csv = None if args.weights_csv is None else args.weights_csv.resolve()
+        recommendation_path = args.recommendation_path.resolve()
+        rebalance_date, target_weights_raw, weights_source_meta = _load_target_weights_from_run_all(
+            recommendation_path=recommendation_path,
+            weights_csv=explicit_csv,
+        )
+
+        data_section = config_data.get("data", {})
+        clean_path_cfg = data_section.get("output_clean_path") if isinstance(data_section, dict) else None
+        if isinstance(clean_path_cfg, str):
+            clean_path = (PROJECT_ROOT / clean_path_cfg).resolve()
+            if clean_path.exists():
+                clean_dates = pd.read_parquet(clean_path, columns=["date"])
+                clean_dates["date"] = pd.to_datetime(clean_dates["date"], utc=False).dt.tz_localize(None)
+                latest_clean_date = pd.Timestamp(clean_dates["date"].max())
+                signal_age_bdays = _business_days_between(
+                    start_date=rebalance_date,
+                    end_date=latest_clean_date,
+                )
+                weights_source_meta["latest_clean_prices_date"] = str(latest_clean_date.date())
+                weights_source_meta["signal_age_business_days"] = int(signal_age_bdays)
+                if signal_age_bdays > int(args.max_signal_age_business_days):
+                    raise ValueError(
+                        "Live signal is stale for paper rebalance: "
+                        f"signal_date={rebalance_date.date()} latest_clean_date={latest_clean_date.date()} "
+                        f"age_business_days={signal_age_bdays} max_allowed={args.max_signal_age_business_days}."
+                    )
 
     broker = _build_broker(config_execution, project_root=PROJECT_ROOT, as_of_date=as_of_date or rebalance_date)
     broker.connect()
@@ -391,6 +513,7 @@ def main() -> None:
             "allow_shorting": allow_shorting,
             "orders_file": str(orders_path),
             "broker_order_ids": broker_ids,
+            "weights_source_meta": weights_source_meta,
         }
         with summary_path.open("w", encoding="utf-8") as fh:
             json.dump(summary, fh, indent=2, sort_keys=True)

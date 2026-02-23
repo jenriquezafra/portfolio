@@ -1,0 +1,50 @@
+data:
+  provider: yfinance
+  timezone: America/New_York
+  frequency: 1d
+  start_date: '2016-01-01'
+  end_date: null
+  universe:
+  - AAPL
+  - MSFT
+  - NVDA
+  - AVGO
+  - ASML
+  - AMD
+  - ORCL
+  - CRM
+  - PANW
+  - QCOM
+  - AMAT
+  - GOOGL
+  - UNH
+  - JNJ
+  - JPM
+  - BAC
+  - XOM
+  - CAT
+  - HON
+  - LIN
+  - PG
+  - COST
+  - HD
+  - NEE
+  - AMT
+  output_raw_path: data/raw/prices.parquet
+  output_clean_path: data/processed/prices_clean.parquet
+  output_panel_path: data/processed/panel.parquet
+labels:
+  horizon_days: 15
+  target_column: fwd_return_15d_resid
+  target_mode: cross_sectional_demeaned
+preprocessing:
+  min_history_days: 252
+  drop_rows_without_adj_close: true
+market_context:
+  enabled: true
+  path: data/external/factors/factors_qqq_iwf_iwd.parquet
+  columns:
+  - nasdaq_proxy
+  - growth_proxy
+  feature_prefix: mkt
+  lag_days: 1
