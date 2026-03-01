@@ -184,12 +184,15 @@ def main() -> None:
 
     ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     report_path = output_dir / f"paper_cycle_{ts}.json"
+    latest_report_path = output_dir / "paper_cycle_latest.json"
     report_path.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+    latest_report_path.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
 
     print("Paper trading cycle completed")
     print(f"Recommendation live signal date: {report['recommendation']['live_signal_date']}")
     print(f"Rebalance summary: {summary_path}")
     print(f"Cycle report: {report_path}")
+    print(f"Latest cycle report: {latest_report_path}")
 
 
 if __name__ == "__main__":
