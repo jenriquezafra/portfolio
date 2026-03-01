@@ -289,6 +289,7 @@ portfolio/
     11_tune_alpha_v2_metrics.py
     12_optimize_drawdown_holdout.py
     13_paper_trading_cycle.py
+    14_check_ibkr_connection.py
   src/
     data.py
     features.py
@@ -331,6 +332,23 @@ cp .env.example .env
 - Enforce hard limits (`max_position_weight`, `max_turnover_per_rebalance`, `kill_switch_enabled`) from `configs/config_execution.yaml`.
 - Move to production only after walk-forward + paper trading checks are stable.
 
+IBKR paper setup checklist:
+
+1. Open TWS/IB Gateway with your paper account and enable API connections.
+2. Confirm `.env` has IBKR values (`IBKR_HOST`, `IBKR_PORT=7497`, `IBKR_CLIENT_ID`, `IBKR_ACCOUNT`, `IBKR_READONLY=true`, `IBKR_MARKET_DATA_TYPE=delayed`).
+3. Switch broker in `configs/config_execution.yaml`:
+   - `execution.broker: ibkr`
+4. Run connection smoke test (no orders):
+
+```bash
+python scripts/14_check_ibkr_connection.py --symbols SPY,QQQ
+```
+
+`IBKR_MARKET_DATA_TYPE` supports: `live`, `frozen`, `delayed`, `delayed_frozen` (or `1..4`).
+
+5. Keep `IBKR_READONLY=true` for dry-runs and paper-cycle validation.
+6. Only when ready to send paper orders, set `IBKR_READONLY=false` and run with `--apply`.
+
 ---
 
 # 14. Rebalance Execution
@@ -367,7 +385,12 @@ Key behavior:
 - Reads target weights from `outputs/backtests/weights_history.parquet`
 - Pulls account snapshot + prices from configured broker (`paper` or `ibkr`)
 - Applies risk controls from `configs/config_execution.yaml`
+- If `max_turnover_per_rebalance` is set but the account has no open positions, the first rebalance skips
+  turnover capping (full initial deployment), then turnover cap is enforced on subsequent rebalances.
 - Saves order plan and execution summary in `outputs/execution/`
+- Also updates stable latest files:
+  - `outputs/execution/rebalance_latest_orders.csv`
+  - `outputs/execution/rebalance_latest_summary.json`
 
 ---
 
@@ -427,6 +450,7 @@ python scripts/13_paper_trading_cycle.py --apply
 Output report:
 
 - `outputs/paper_cycle/paper_cycle_<timestamp>.json`
+- Stable latest report: `outputs/paper_cycle/paper_cycle_latest.json`
 
 ---
 
@@ -519,3 +543,70 @@ Outputs:
 - `outputs/experiments/drawdown_holdout_tuning/gate_sweep.csv`
 - `outputs/experiments/drawdown_holdout_tuning/config_backtest.drawdown_holdout.tuned.yaml`
 - `outputs/experiments/drawdown_holdout_tuning/config_execution.drawdown_holdout.tuned.yaml`
+
+---
+
+# 18. Signal Stack (Return-First, Long-Only)
+
+Backtest now supports a composite signal stack:
+
+- Model prediction component.
+- Momentum residual signal.
+- Reversal-regime signal.
+- Volatility compression breakout signal.
+- Liquidity impulse signal.
+
+Config keys in `config_backtest*.yaml`:
+
+```yaml
+backtest:
+  signal_stack:
+    enabled: false
+    normalize_weights: true
+    weights:
+      model_prediction: 1.0
+      momentum_residual: 0.0
+      reversal_regime: 0.0
+      vol_compression_breakout: 0.0
+      liquidity_impulse: 0.0
+```
+
+When enabled, backtest outputs include signal attribution columns in `outputs/backtests/rebalance_log.parquet`:
+
+- `signal_model_component`
+- `signal_momentum_component`
+- `signal_reversal_component`
+- `signal_vol_breakout_component`
+- `signal_liquidity_component`
+- `signal_composite`
+
+And `outputs/backtests/backtest_summary.json` includes:
+
+- `signal_stack_enabled`
+- `signal_stack_weights`
+- `signal_stack_contribution_stats`
+
+Tune signal-stack weights:
+
+```bash
+python scripts/14_tune_signal_stack.py
+```
+
+Main outputs:
+
+- `outputs/experiments/signal_stack_tuning/comparison.csv`
+- `outputs/experiments/signal_stack_tuning/comparison.json`
+- `outputs/experiments/signal_stack_tuning/top_candidates.json`
+- `outputs/experiments/signal_stack_tuning/recommended_signal_stack_patch.yaml`
+- `outputs/experiments/signal_stack_tuning/config_backtest.signal_stack.recommended.yaml`
+
+Freeze a dated baseline snapshot bundle (metrics schema + config bundle):
+
+```bash
+python scripts/05_run_all.py --snapshot-baseline
+```
+
+Baseline snapshots are stored under:
+
+- `outputs/experiments/signal_stack_baseline/<timestamp>/`
+- `outputs/experiments/signal_stack_baseline/latest/`
