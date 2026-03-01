@@ -17,6 +17,14 @@ from src.optimizer import (
 )
 from src.reporting import build_factor_diagnostics_report
 from src.risk import build_daily_returns, estimate_covariance_matrix, pivot_returns
+from src.signals import (
+    ENGINEERED_SIGNAL_COLUMNS,
+    build_composite_signal,
+    build_price_volume_signal_panel,
+    compute_signal_attribution_stats,
+    parse_signal_stack_weights,
+    summarize_signal_stack_contributions,
+)
 
 
 def _get_rebalance_dates(
@@ -689,6 +697,7 @@ def run_backtest(
     objective_cfg = backtest_section.get("objective", {})
     risk_overlay_cfg = backtest_section.get("risk_overlay", {})
     gate_cfg = backtest_section.get("signal_quality_gate", {})
+    signal_stack_cfg = backtest_section.get("signal_stack", {})
 
     if not isinstance(signal_cfg, dict):
         raise ValueError("`backtest.signal_transform` must be a mapping.")
@@ -700,6 +709,8 @@ def run_backtest(
         raise ValueError("`backtest.risk_overlay` must be a mapping.")
     if not isinstance(gate_cfg, dict):
         raise ValueError("`backtest.signal_quality_gate` must be a mapping.")
+    if not isinstance(signal_stack_cfg, dict):
+        raise ValueError("`backtest.signal_stack` must be a mapping.")
 
     long_only_default = bool(constraints_cfg.get("long_only", True))
     portfolio_mode = str(portfolio_cfg.get("mode", "long_only" if long_only_default else "market_neutral")).lower()
@@ -742,6 +753,8 @@ def run_backtest(
     gate_min_history = int(gate_cfg.get("min_history_rebalances", 8))
     gate_threshold = float(gate_cfg.get("threshold", 0.0))
     gate_bad_state_multiplier = float(gate_cfg.get("bad_state_multiplier", 0.35))
+    signal_stack_enabled = bool(signal_stack_cfg.get("enabled", False))
+    signal_stack_weights, signal_stack_normalize_weights = parse_signal_stack_weights(signal_stack_cfg)
 
     if overlay_vol_lookback < 2:
         raise ValueError("`backtest.risk_overlay.realized_vol_lookback_days` must be >= 2.")
@@ -796,6 +809,12 @@ def run_backtest(
 
     returns_wide = pivot_returns(build_daily_returns(clean_prices))
     returns_dates = pd.Series(returns_wide.index.to_list())
+    engineered_signals_idx: pd.DataFrame | None = None
+    if signal_stack_enabled:
+        engineered = build_price_volume_signal_panel(clean_prices=clean_prices)
+        engineered["date"] = pd.to_datetime(engineered["date"], utc=False).dt.tz_localize(None)
+        engineered["ticker"] = engineered["ticker"].astype(str)
+        engineered_signals_idx = engineered.set_index(["date", "ticker"]).sort_index()
 
     signal_quality_lookup: dict[pd.Timestamp, float] = {}
     if gate_enabled:
@@ -874,6 +893,32 @@ def run_backtest(
         tickers = pred_slice["ticker"].tolist()
         mu_raw = pred_slice.set_index("ticker")["prediction"].astype(float)
         signal = _rank_to_zscore(mu_raw) if use_rank_zscore else mu_raw.copy()
+        signal_attribution: dict[str, float] = {
+            "signal_model_component": float(signal.abs().mean()),
+            "signal_momentum_component": 0.0,
+            "signal_reversal_component": 0.0,
+            "signal_vol_breakout_component": 0.0,
+            "signal_liquidity_component": 0.0,
+            "signal_composite": float(signal.abs().mean()),
+        }
+        if signal_stack_enabled and engineered_signals_idx is not None:
+            reb_date = pd.Timestamp(rebalance_date)
+            try:
+                engineered_slice = engineered_signals_idx.xs(reb_date, level="date").reindex(tickers)
+            except KeyError:
+                engineered_slice = pd.DataFrame(index=tickers, columns=list(ENGINEERED_SIGNAL_COLUMNS), dtype=float)
+            composite_signal, components, _ = build_composite_signal(
+                model_signal=signal.reindex(tickers).fillna(0.0),
+                engineered_signals=engineered_slice,
+                weights=signal_stack_weights,
+                normalize_weights=False,
+            )
+            signal = composite_signal
+            signal_attribution = compute_signal_attribution_stats(
+                components=components,
+                weights=signal_stack_weights,
+                composite=signal,
+            )
         vol_est = _estimate_asset_volatility(
             returns_wide=returns_wide,
             tickers=tickers,
@@ -1033,6 +1078,12 @@ def run_backtest(
             "signal_gate_threshold": float(gate_threshold),
             "signal_gate_active": bool(gate_active),
             "signal_gate_multiplier": float(gate_multiplier),
+            "signal_model_component": float(signal_attribution["signal_model_component"]),
+            "signal_momentum_component": float(signal_attribution["signal_momentum_component"]),
+            "signal_reversal_component": float(signal_attribution["signal_reversal_component"]),
+            "signal_vol_breakout_component": float(signal_attribution["signal_vol_breakout_component"]),
+            "signal_liquidity_component": float(signal_attribution["signal_liquidity_component"]),
+            "signal_composite": float(signal_attribution["signal_composite"]),
         }
         for name, value in ex_ante_factor_map.items():
             log_row[f"ex_ante_factor_{name}"] = float(value)
@@ -1056,6 +1107,11 @@ def run_backtest(
         beta_neutralization_enabled=beta_neutralization_enabled,
         signal_quality_gate_enabled=gate_enabled,
     )
+    summary["signal_stack_enabled"] = bool(signal_stack_enabled)
+    if signal_stack_enabled:
+        summary["signal_stack_weights"] = {k: float(v) for k, v in signal_stack_weights.items()}
+        summary["signal_stack_normalize_weights"] = bool(signal_stack_normalize_weights)
+        summary["signal_stack_contribution_stats"] = summarize_signal_stack_contributions(rebalance_log)
     subperiod_report = _build_subperiod_report(
         daily_returns=daily_returns,
         predictions=predictions,
