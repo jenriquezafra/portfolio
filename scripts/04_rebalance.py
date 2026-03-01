@@ -77,6 +77,23 @@ def _resolve_env(obj: Any) -> Any:
     return obj
 
 
+def _parse_bool(value: Any, *, default: bool) -> bool:
+    if value is None:
+        return bool(default)
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"1", "true", "t", "yes", "y", "on"}:
+            return True
+        if normalized in {"0", "false", "f", "no", "n", "off", ""}:
+            return False
+        raise ValueError(f"Invalid boolean value: {value!r}")
+    return bool(value)
+
+
 def _load_target_weights(weights_path: Path, as_of_date: str | None) -> tuple[pd.Timestamp, pd.Series]:
     weights = pd.read_parquet(weights_path)
     weights["rebalance_date"] = pd.to_datetime(weights["rebalance_date"], utc=False).dt.tz_localize(None)
@@ -178,6 +195,19 @@ def _compute_current_weights(
         return pd.Series(0.0, index=symbols, dtype=float)
     values = pd.Series({s: float(positions_qty.get(s, 0.0)) * float(prices.get(s, 0.0)) for s in symbols}, dtype=float)
     return (values / float(equity)).fillna(0.0)
+
+
+def _effective_turnover_cap(
+    max_turnover: float | None,
+    current_qty: pd.Series,
+) -> tuple[float | None, bool]:
+    if max_turnover is None:
+        return None, False
+    qty = pd.to_numeric(current_qty, errors="coerce").fillna(0.0)
+    has_open_positions = bool((qty.abs() > 1e-12).any())
+    if not has_open_positions:
+        return None, False
+    return float(max_turnover), True
 
 
 def _validate_weights(weights: pd.Series, max_position_weight: float, max_gross_exposure: float) -> None:
@@ -317,8 +347,16 @@ def _build_broker(execution_cfg: dict, project_root: Path, as_of_date: pd.Timest
         port = int(ibkr_cfg.get("port") or 7497)
         client_id = int(ibkr_cfg.get("client_id") or 101)
         account = ibkr_cfg.get("account")
-        readonly = bool(ibkr_cfg.get("readonly", True))
-        return IBKRBroker(host=host, port=port, client_id=client_id, account=account, readonly=readonly)
+        readonly = _parse_bool(ibkr_cfg.get("readonly"), default=True)
+        market_data_type = ibkr_cfg.get("market_data_type", "delayed")
+        return IBKRBroker(
+            host=host,
+            port=port,
+            client_id=client_id,
+            account=account,
+            readonly=readonly,
+            market_data_type=market_data_type,
+        )
 
     raise ValueError(f"Unsupported broker: {broker_name}")
 
@@ -350,8 +388,8 @@ def main() -> None:
     max_position_weight = float(risk_controls.get("max_position_weight", 1.0))
     max_gross_exposure = float(risk_controls.get("max_gross_exposure", 1.0))
     max_net_exposure = float(risk_controls.get("max_net_exposure", 1.0))
-    reject_if_missing_prices = bool(risk_controls.get("reject_if_missing_prices", True))
-    kill_switch_enabled = bool(risk_controls.get("kill_switch_enabled", True))
+    reject_if_missing_prices = _parse_bool(risk_controls.get("reject_if_missing_prices"), default=True)
+    kill_switch_enabled = _parse_bool(risk_controls.get("kill_switch_enabled"), default=True)
 
     as_of_date = None if args.as_of_date is None else pd.Timestamp(args.as_of_date).tz_localize(None)
     if args.max_signal_age_business_days <= 0:
@@ -426,6 +464,18 @@ def main() -> None:
             equity=float(snapshot.equity),
             symbols=symbols,
         )
+        effective_max_turnover, turnover_cap_applied = _effective_turnover_cap(
+            max_turnover=max_turnover,
+            current_qty=current_qty,
+        )
+        if max_turnover is not None:
+            weights_source_meta["turnover_cap_configured"] = float(max_turnover)
+            weights_source_meta["turnover_cap_effective"] = (
+                None if effective_max_turnover is None else float(effective_max_turnover)
+            )
+            weights_source_meta["turnover_cap_applied"] = bool(turnover_cap_applied)
+            if not turnover_cap_applied:
+                weights_source_meta["turnover_cap_skipped_reason"] = "no_open_positions"
 
         target_weights = _prepare_target_weights(
             target_weights_raw=target_weights_raw,
@@ -436,7 +486,7 @@ def main() -> None:
         target_weights, turnover = apply_turnover_cap(
             target_weights=target_weights,
             prev_weights=current_weights,
-            max_turnover_per_rebalance=max_turnover,
+            max_turnover_per_rebalance=effective_max_turnover,
         )
         _validate_weights_with_mode(
             weights=target_weights,
@@ -475,11 +525,15 @@ def main() -> None:
         prefix = f"rebalance_{rebalance_date.date()}_{ts}"
         orders_path = exec_dir / f"{prefix}_orders.csv"
         summary_path = exec_dir / f"{prefix}_summary.json"
+        latest_orders_path = exec_dir / "rebalance_latest_orders.csv"
+        latest_summary_path = exec_dir / "rebalance_latest_summary.json"
 
         if not orders_df.empty:
             orders_df.to_csv(orders_path, index=False)
+            orders_df.to_csv(latest_orders_path, index=False)
         else:
             pd.DataFrame(columns=["ticker", "delta_qty"]).to_csv(orders_path, index=False)
+            pd.DataFrame(columns=["ticker", "delta_qty"]).to_csv(latest_orders_path, index=False)
 
         can_apply = bool(args.apply)
         if can_apply and kill_switch_enabled and os.getenv("KILL_SWITCH", "0").strip() == "1":
@@ -487,7 +541,7 @@ def main() -> None:
 
         if can_apply and broker_name == "ibkr":
             ibkr_cfg = config_execution.get("ibkr", {})
-            if bool(ibkr_cfg.get("readonly", True)):
+            if _parse_bool(ibkr_cfg.get("readonly"), default=True):
                 raise RuntimeError("IBKR is readonly=true. Set readonly=false to allow order submission.")
 
         broker_ids: list[str] = []
@@ -512,10 +566,13 @@ def main() -> None:
             "portfolio_mode": portfolio_mode,
             "allow_shorting": allow_shorting,
             "orders_file": str(orders_path),
+            "orders_file_latest": str(latest_orders_path),
             "broker_order_ids": broker_ids,
             "weights_source_meta": weights_source_meta,
         }
         with summary_path.open("w", encoding="utf-8") as fh:
+            json.dump(summary, fh, indent=2, sort_keys=True)
+        with latest_summary_path.open("w", encoding="utf-8") as fh:
             json.dump(summary, fh, indent=2, sort_keys=True)
 
         print("Rebalance plan ready")
@@ -524,10 +581,16 @@ def main() -> None:
         print(f"Apply orders: {can_apply}")
         print(f"Rebalance date used: {rebalance_date.date()}")
         print(f"Equity: {snapshot.equity:,.2f}")
+        print(
+            "Turnover cap effective: "
+            f"{'none' if effective_max_turnover is None else f'{effective_max_turnover:.4f}'}"
+        )
         print(f"Estimated turnover: {turnover:.6f}")
         print(f"Orders: {len(requests)}")
         print(f"Orders file: {orders_path}")
+        print(f"Latest orders file: {latest_orders_path}")
         print(f"Summary file: {summary_path}")
+        print(f"Latest summary file: {latest_summary_path}")
         if not orders_df.empty:
             print("Top order changes:")
             top = orders_df.sort_values("abs_weight_change", ascending=False).head(10)
