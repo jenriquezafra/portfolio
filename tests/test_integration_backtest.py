@@ -209,3 +209,148 @@ def test_backtest_risk_overlay_reduces_average_gross_exposure(tmp_path: Path) ->
     lev = pd.to_numeric(rebalance_log_overlay["risk_overlay_leverage"], errors="coerce").dropna()
     assert not lev.empty
     assert float(lev.max()) <= 1.0 + 1e-12
+
+
+def test_backtest_signal_stack_enabled_emits_component_columns(tmp_path: Path) -> None:
+    project_root = tmp_path
+    (project_root / "configs").mkdir(parents=True, exist_ok=True)
+    (project_root / "data" / "processed").mkdir(parents=True, exist_ok=True)
+    (project_root / "outputs" / "models").mkdir(parents=True, exist_ok=True)
+
+    clean = _make_clean_prices(n_days=160, n_tickers=12)
+    preds = _make_predictions(clean)
+    clean.to_parquet(project_root / "data" / "processed" / "prices_clean.parquet", index=False)
+    preds.to_parquet(project_root / "outputs" / "models" / "predictions_oos.parquet", index=False)
+
+    config_data = {
+        "data": {"output_clean_path": "data/processed/prices_clean.parquet"},
+        "labels": {"horizon_days": 5, "target_column": "fwd_return_5d_resid"},
+    }
+    config_backtest = {
+        "backtest": {
+            "rebalance_frequency": "every_n_days",
+            "rebalance_every_n_days": 5,
+            "risk_lookback_days": 20,
+            "risk_shrinkage": 0.10,
+            "signal_transform": {"cross_sectional_rank_zscore": True},
+            "portfolio": {
+                "mode": "long_only",
+                "vol_lookback_days": 20,
+                "beta_neutralization": {"enabled": False},
+            },
+            "costs": {"bps_per_side": 5.0, "slippage_bps": 2.0},
+            "constraints": {"long_only": True, "fully_invested": True, "weight_max": 0.20},
+            "objective": {"allocation_method": "score_over_vol"},
+            "signal_stack": {
+                "enabled": True,
+                "normalize_weights": True,
+                "weights": {
+                    "model_prediction": 1.0,
+                    "momentum_residual": 0.25,
+                    "reversal_regime": 0.15,
+                    "vol_compression_breakout": 0.10,
+                    "liquidity_impulse": 0.20,
+                },
+            },
+        }
+    }
+    config_execution = {"risk_controls": {"max_turnover_per_rebalance": 0.35}}
+
+    cfg_data_path = project_root / "configs" / "config_data.yaml"
+    cfg_back_path = project_root / "configs" / "config_backtest.yaml"
+    cfg_exec_path = project_root / "configs" / "config_execution.yaml"
+    cfg_data_path.write_text(yaml.safe_dump(config_data, sort_keys=False), encoding="utf-8")
+    cfg_back_path.write_text(yaml.safe_dump(config_backtest, sort_keys=False), encoding="utf-8")
+    cfg_exec_path.write_text(yaml.safe_dump(config_execution, sort_keys=False), encoding="utf-8")
+
+    _, _, rebalance_log, summary, *_ = run_backtest(
+        config_data_path=cfg_data_path,
+        config_backtest_path=cfg_back_path,
+        config_execution_path=cfg_exec_path,
+    )
+
+    assert summary["signal_stack_enabled"] is True
+    assert "signal_stack_weights" in summary
+    assert "signal_stack_contribution_stats" in summary
+    for col in [
+        "signal_model_component",
+        "signal_momentum_component",
+        "signal_reversal_component",
+        "signal_vol_breakout_component",
+        "signal_liquidity_component",
+        "signal_composite",
+    ]:
+        assert col in rebalance_log.columns
+        vals = pd.to_numeric(rebalance_log[col], errors="coerce").dropna()
+        assert not vals.empty
+        assert float(vals.min()) >= 0.0
+
+
+def test_backtest_signal_stack_disabled_keeps_baseline_metrics(tmp_path: Path) -> None:
+    project_root = tmp_path
+    (project_root / "configs").mkdir(parents=True, exist_ok=True)
+    (project_root / "data" / "processed").mkdir(parents=True, exist_ok=True)
+    (project_root / "outputs" / "models").mkdir(parents=True, exist_ok=True)
+
+    clean = _make_clean_prices(n_days=150, n_tickers=10)
+    preds = _make_predictions(clean)
+    clean.to_parquet(project_root / "data" / "processed" / "prices_clean.parquet", index=False)
+    preds.to_parquet(project_root / "outputs" / "models" / "predictions_oos.parquet", index=False)
+
+    config_data = {
+        "data": {"output_clean_path": "data/processed/prices_clean.parquet"},
+        "labels": {"horizon_days": 5, "target_column": "fwd_return_5d_resid"},
+    }
+    base_backtest = {
+        "backtest": {
+            "rebalance_frequency": "every_n_days",
+            "rebalance_every_n_days": 5,
+            "risk_lookback_days": 20,
+            "risk_shrinkage": 0.10,
+            "signal_transform": {"cross_sectional_rank_zscore": True},
+            "portfolio": {
+                "mode": "long_only",
+                "vol_lookback_days": 20,
+                "beta_neutralization": {"enabled": False},
+            },
+            "costs": {"bps_per_side": 5.0, "slippage_bps": 2.0},
+            "constraints": {"long_only": True, "fully_invested": True, "weight_max": 0.20},
+            "objective": {"allocation_method": "score_over_vol"},
+        }
+    }
+    disabled_stack_backtest = deepcopy(base_backtest)
+    disabled_stack_backtest["backtest"]["signal_stack"] = {
+        "enabled": False,
+        "normalize_weights": True,
+        "weights": {
+            "model_prediction": 1.0,
+            "momentum_residual": 0.0,
+            "reversal_regime": 0.0,
+            "vol_compression_breakout": 0.0,
+            "liquidity_impulse": 0.0,
+        },
+    }
+    config_execution = {"risk_controls": {"max_turnover_per_rebalance": 0.35}}
+
+    cfg_data_path = project_root / "configs" / "config_data.yaml"
+    cfg_back_base_path = project_root / "configs" / "config_backtest.base.yaml"
+    cfg_back_disabled_path = project_root / "configs" / "config_backtest.disabled.yaml"
+    cfg_exec_path = project_root / "configs" / "config_execution.yaml"
+    cfg_data_path.write_text(yaml.safe_dump(config_data, sort_keys=False), encoding="utf-8")
+    cfg_back_base_path.write_text(yaml.safe_dump(base_backtest, sort_keys=False), encoding="utf-8")
+    cfg_back_disabled_path.write_text(yaml.safe_dump(disabled_stack_backtest, sort_keys=False), encoding="utf-8")
+    cfg_exec_path.write_text(yaml.safe_dump(config_execution, sort_keys=False), encoding="utf-8")
+
+    _, _, _, summary_base, *_ = run_backtest(
+        config_data_path=cfg_data_path,
+        config_backtest_path=cfg_back_base_path,
+        config_execution_path=cfg_exec_path,
+    )
+    _, _, _, summary_disabled, *_ = run_backtest(
+        config_data_path=cfg_data_path,
+        config_backtest_path=cfg_back_disabled_path,
+        config_execution_path=cfg_exec_path,
+    )
+
+    for key in ["annualized_return", "weekly_sharpe_ratio", "max_drawdown", "average_turnover"]:
+        assert np.isclose(float(summary_disabled[key]), float(summary_base[key]), atol=1e-12)
