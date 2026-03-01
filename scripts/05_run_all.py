@@ -5,6 +5,7 @@ import json
 from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
+import shutil
 import sys
 from typing import Any
 
@@ -27,6 +28,13 @@ from src.optimizer import (
     signal_to_market_neutral_weights,
 )
 from src.risk import build_daily_returns, estimate_covariance_matrix, pivot_returns
+from src.signals import (
+    ENGINEERED_SIGNAL_COLUMNS,
+    build_composite_signal,
+    build_price_volume_signal_panel,
+    compute_signal_attribution_stats,
+    parse_signal_stack_weights,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -46,6 +54,17 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("outputs/run_all"),
         help="Directory where run summary and recommendation files are saved.",
+    )
+    parser.add_argument(
+        "--snapshot-baseline",
+        action="store_true",
+        help="Persist a dated baseline snapshot bundle for signal-stack promotion tracking.",
+    )
+    parser.add_argument(
+        "--baseline-snapshot-dir",
+        type=Path,
+        default=Path("outputs/experiments/signal_stack_baseline"),
+        help="Directory where dated baseline snapshot bundles are saved.",
     )
     return parser.parse_args()
 
@@ -117,6 +136,66 @@ def _serialize_weights_row(df: pd.DataFrame) -> list[dict[str, Any]]:
             }
         )
     return out
+
+
+def _build_promotion_comparison_schema(recommendation: dict[str, Any]) -> dict[str, Any]:
+    strategy = str(recommendation.get("recommended_strategy", "long_only"))
+    summary = recommendation.get("strategy_summaries", {}).get(strategy, {})
+    annualized_return = float(summary.get("annualized_return", 0.0) or 0.0)
+    weekly_sharpe = summary.get("weekly_sharpe_ratio")
+    max_drawdown = float(summary.get("max_drawdown", 0.0) or 0.0)
+    avg_turnover = float(summary.get("average_turnover", 0.0) or 0.0)
+    return {
+        "schema_version": "signal_stack_promotion_v1",
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "baseline": {
+            "recommended_strategy": strategy,
+            "annualized_return": annualized_return,
+            "weekly_sharpe_ratio": None if weekly_sharpe is None else float(weekly_sharpe),
+            "max_drawdown": max_drawdown,
+            "average_turnover": avg_turnover,
+            "signal_gate_active_rate": summary.get("signal_gate_active_rate"),
+        },
+        "promotion_thresholds": {
+            "annualized_return_min_relative_improvement": 0.05,
+            "weekly_sharpe_max_drop": 0.05,
+            "max_drawdown_max_worsening": 0.05,
+            "average_turnover_max": 0.40,
+        },
+    }
+
+
+def _write_baseline_snapshot_bundle(
+    *,
+    recommendation: dict[str, Any],
+    config_data_path: Path,
+    config_model_path: Path,
+    config_backtest_path: Path,
+    config_execution_path: Path,
+    baseline_snapshot_dir: Path,
+) -> Path:
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    run_dir = baseline_snapshot_dir / ts
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    comparison = _build_promotion_comparison_schema(recommendation)
+    (run_dir / "comparison.json").write_text(json.dumps(comparison, indent=2, sort_keys=True), encoding="utf-8")
+    (run_dir / "recommendation.json").write_text(json.dumps(recommendation, indent=2, sort_keys=True), encoding="utf-8")
+
+    config_map = {
+        "config_data.yaml": config_data_path,
+        "config_model.yaml": config_model_path,
+        "config_backtest.yaml": config_backtest_path,
+        "config_execution.yaml": config_execution_path,
+    }
+    for filename, src in config_map.items():
+        shutil.copy2(src, run_dir / filename)
+
+    latest_dir = baseline_snapshot_dir / "latest"
+    if latest_dir.exists():
+        shutil.rmtree(latest_dir)
+    shutil.copytree(run_dir, latest_dir)
+    return run_dir
 
 
 def _rank_to_zscore(signal: pd.Series) -> pd.Series:
@@ -266,6 +345,7 @@ def _compute_live_weights(
     constraints_cfg = back.get("constraints", {})
     objective_cfg = back.get("objective", {})
     gate_cfg = back.get("signal_quality_gate", {})
+    signal_stack_cfg = back.get("signal_stack", {})
     risk_controls = execution_cfg.get("risk_controls", {})
     labels_cfg = data_cfg.get("labels", {})
     if (
@@ -274,6 +354,7 @@ def _compute_live_weights(
         or not isinstance(constraints_cfg, dict)
         or not isinstance(objective_cfg, dict)
         or not isinstance(gate_cfg, dict)
+        or not isinstance(signal_stack_cfg, dict)
         or not isinstance(risk_controls, dict)
         or not isinstance(labels_cfg, dict)
     ):
@@ -293,6 +374,8 @@ def _compute_live_weights(
     risk_aversion_lambda = float(objective_cfg.get("risk_aversion_lambda", 10.0))
     turnover_penalty_eta = float(objective_cfg.get("turnover_penalty_eta", 5.0))
     horizon_days = int(labels_cfg.get("horizon_days", 5))
+    signal_stack_enabled = bool(signal_stack_cfg.get("enabled", False))
+    signal_stack_weights, signal_stack_normalize_weights = parse_signal_stack_weights(signal_stack_cfg)
 
     live_df = live_predictions.copy()
     live_df["date"] = pd.to_datetime(live_df["date"], utc=False).dt.tz_localize(None)
@@ -312,6 +395,35 @@ def _compute_live_weights(
     tickers = live_slice["ticker"].tolist()
     mu_raw = live_slice.set_index("ticker")["prediction"].astype(float)
     signal = _rank_to_zscore(mu_raw) if use_rank_zscore else mu_raw.copy()
+    signal_attribution: dict[str, float] = {
+        "signal_model_component": float(signal.abs().mean()),
+        "signal_momentum_component": 0.0,
+        "signal_reversal_component": 0.0,
+        "signal_vol_breakout_component": 0.0,
+        "signal_liquidity_component": 0.0,
+        "signal_composite": float(signal.abs().mean()),
+    }
+    if signal_stack_enabled:
+        engineered = build_price_volume_signal_panel(clean_prices=clean_prices)
+        engineered["date"] = pd.to_datetime(engineered["date"], utc=False).dt.tz_localize(None)
+        engineered["ticker"] = engineered["ticker"].astype(str)
+        engineered_idx = engineered.set_index(["date", "ticker"]).sort_index()
+        try:
+            engineered_slice = engineered_idx.xs(live_date, level="date").reindex(tickers)
+        except KeyError:
+            engineered_slice = pd.DataFrame(index=tickers, columns=list(ENGINEERED_SIGNAL_COLUMNS), dtype=float)
+        composite_signal, components, _ = build_composite_signal(
+            model_signal=signal.reindex(tickers).fillna(0.0),
+            engineered_signals=engineered_slice,
+            weights=signal_stack_weights,
+            normalize_weights=False,
+        )
+        signal = composite_signal
+        signal_attribution = compute_signal_attribution_stats(
+            components=components,
+            weights=signal_stack_weights,
+            composite=signal,
+        )
     vol_est = _estimate_asset_volatility(
         returns_wide=returns_wide,
         tickers=tickers,
@@ -418,6 +530,15 @@ def _compute_live_weights(
         "signal_gate_metric_value": None if gate_metric_value is None else float(gate_metric_value),
         "signal_gate_threshold": float(gate_threshold),
         "signal_gate_multiplier": float(gate_multiplier),
+        "signal_stack_enabled": bool(signal_stack_enabled),
+        "signal_stack_weights": {k: float(v) for k, v in signal_stack_weights.items()},
+        "signal_stack_normalize_weights": bool(signal_stack_normalize_weights),
+        "signal_model_component": float(signal_attribution["signal_model_component"]),
+        "signal_momentum_component": float(signal_attribution["signal_momentum_component"]),
+        "signal_reversal_component": float(signal_attribution["signal_reversal_component"]),
+        "signal_vol_breakout_component": float(signal_attribution["signal_vol_breakout_component"]),
+        "signal_liquidity_component": float(signal_attribution["signal_liquidity_component"]),
+        "signal_composite": float(signal_attribution["signal_composite"]),
     }
     return out, summary
 
@@ -426,6 +547,7 @@ def main() -> None:
     args = parse_args()
     output_dir = (PROJECT_ROOT / args.output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
+    baseline_snapshot_dir = (PROJECT_ROOT / args.baseline_snapshot_dir).resolve()
 
     if args.top_k <= 0:
         raise ValueError("`--top-k` must be a positive integer.")
@@ -604,6 +726,16 @@ def main() -> None:
 
     recommendation_path = output_dir / "recommendation.json"
     recommendation_path.write_text(json.dumps(recommendation, indent=2, sort_keys=True), encoding="utf-8")
+    snapshot_path: Path | None = None
+    if args.snapshot_baseline:
+        snapshot_path = _write_baseline_snapshot_bundle(
+            recommendation=recommendation,
+            config_data_path=config_data_path,
+            config_model_path=config_model_path,
+            config_backtest_path=config_backtest_path,
+            config_execution_path=config_execution_path,
+            baseline_snapshot_dir=baseline_snapshot_dir,
+        )
 
     print("[done] Recommendation ready")
     print(f"Data rows fetched: {len(prices):,}")
@@ -624,6 +756,8 @@ def main() -> None:
     print(f"Recommended live weights file: {recommended_weights_path}")
     print(f"Backtest snapshot weights file: {recommended_backtest_weights_path}")
     print(f"Recommendation report: {recommendation_path}")
+    if snapshot_path is not None:
+        print(f"Baseline snapshot bundle: {snapshot_path}")
     if not top_longs.empty:
         print("Top longs:")
         for _, row in top_longs.iterrows():
