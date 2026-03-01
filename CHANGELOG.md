@@ -2,6 +2,35 @@
 
 Registro de cambios relevantes del proyecto.
 
+## 2026-02-26
+
+### Añadido
+- Nuevo módulo `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/src/signals.py` con señales cross-sectional determinísticas y sin look-ahead:
+  - `momentum_residual_signal`
+  - `reversal_regime_signal`
+  - `vol_compression_breakout_signal`
+  - `liquidity_impulse_signal`
+- Nuevo script `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/scripts/14_tune_signal_stack.py` para tuning de `signal_stack` con búsqueda coarse + refinamiento local.
+- Nuevo test `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/tests/test_signal_stack.py`.
+
+### Cambiado
+- `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/src/backtest.py` ahora soporta `backtest.signal_stack`:
+  - combinación de señal del modelo + señales ingenierizadas con pesos configurables;
+  - columnas de atribución por rebalance en `rebalance_log.parquet`;
+  - metadatos `signal_stack_*` en `backtest_summary.json`.
+- `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/scripts/05_run_all.py`:
+  - aplica `signal_stack` también en cálculo de pesos live;
+  - añade snapshot baseline opcional con `--snapshot-baseline`;
+  - guarda bundle fechado con `comparison.json` + configs en `outputs/experiments/signal_stack_baseline/`.
+- Se añadieron claves `backtest.signal_stack` en:
+  - `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/configs/config_backtest.yaml`
+  - `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/configs/config_backtest.alpha_v2.yaml`
+  - `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/configs/config_backtest.baseline_v1.yaml`
+- `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/tests/test_integration_backtest.py` incorpora cobertura para:
+  - ejecución con `signal_stack.enabled=true`;
+  - compatibilidad al desactivar el stack.
+- `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/README.md` documenta el flujo de signal stack y tuning.
+
 ## 2026-02-23
 
 ### Añadido
@@ -29,8 +58,10 @@ Registro de cambios relevantes del proyecto.
 - `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/configs/config_execution.yaml` fijó `max_turnover_per_rebalance: 0.35`.
 - `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/scripts/05_run_all.py` ahora exporta dos snapshots: `backtest` (último rebalance OOS) y `live` (última fecha de mercado disponible), manteniendo la selección de estrategia por backtest.
 - `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/scripts/04_rebalance.py` añade `--weights-source run_all` para rebalancear con pesos live de `recommendation.json`, con control de antigüedad de señal en días hábiles.
+- `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/scripts/04_rebalance.py` ahora también actualiza artefactos estables de última ejecución: `outputs/execution/rebalance_latest_orders.csv` y `outputs/execution/rebalance_latest_summary.json`.
 - `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/src/features.py` amplió el set de señales (horizontes de retorno, estructura de volatilidad, liquidez y microestructura) y añadió `drop_target_na` para soportar inferencia live en la cola sin label.
 - `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/src/model_xgb.py` incorporó `training_target_transform` con opción `cross_sectional_rank`, añadió `run_predict_live`/`predict_latest_live_xgb` y fallback controlado de `market_context` en live (`live_allow_stale_fallback`, `live_max_stale_days`).
+- `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/scripts/13_paper_trading_cycle.py` ahora actualiza `outputs/paper_cycle/paper_cycle_latest.json` además del reporte con timestamp.
 - `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/src/backtest.py` incorporó `signal_quality_gate` con control de exposición por calidad de señal histórica.
 - `/Users/jenriquezafra/Proyectos/Dev/python/portfolio/README.md` documenta el flujo de optimización de retorno.
 
