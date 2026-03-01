@@ -1,0 +1,24 @@
+execution:
+  mode: paper
+  broker: paper
+  account_currency: USD
+  rebalance_time_ny: '15:45'
+  order_type: MKT
+  tif: DAY
+paper:
+  initial_cash: 100000
+  state_path: outputs/execution/paper_state.json
+  prices_path: data/processed/prices_clean.parquet
+ibkr:
+  host: ${IBKR_HOST}
+  port: ${IBKR_PORT}
+  client_id: ${IBKR_CLIENT_ID}
+  account: ${IBKR_ACCOUNT}
+  readonly: ${IBKR_READONLY}
+risk_controls:
+  max_position_weight: 0.2
+  max_gross_exposure: 1.0
+  max_turnover_per_rebalance: 0.35
+  min_cash_buffer: 0.02
+  reject_if_missing_prices: true
+  kill_switch_enabled: true

@@ -1,0 +1,35 @@
+model:
+  name: xgboost_regressor
+  training_target_transform: cross_sectional_rank
+  features:
+  - ret_1d
+  - ret_2d
+  - ret_5d
+  - ret_10d
+  - ret_20d
+  - ret_63d
+  - vol_5d
+  - vol_20d
+  - vol_60d
+  - vol_ratio_20_60
+  - downside_vol_20d
+  - upside_vol_20d
+  - momentum_20_60
+  - momentum_5_20
+  - momentum_x_vol_20
+  - reversal_1_5
+  - overnight_gap_1d
+  - intraday_return_1d
+  - high_low_range_1d
+  - dollar_volume_log_20d
+  - dollar_volume_z_60d
+  - mkt_nasdaq_proxy_lag1
+  - mkt_growth_proxy_lag1
+  params:
+    n_estimators: 500
+    max_depth: 4
+    learning_rate: 0.03
+    subsample: 0.75
+    colsample_bytree: 0.75
+    objective: reg:squarederror
+    random_state: 42

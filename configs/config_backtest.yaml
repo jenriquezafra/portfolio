@@ -57,3 +57,12 @@ backtest:
     min_history_rebalances: 8
     threshold: 0.02
     bad_state_multiplier: 0.6
+  signal_stack:
+    enabled: false
+    normalize_weights: true
+    weights:
+      model_prediction: 1.0
+      momentum_residual: 0.0
+      reversal_regime: 0.0
+      vol_compression_breakout: 0.0
+      liquidity_impulse: 0.0

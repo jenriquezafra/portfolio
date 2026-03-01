@@ -1,0 +1,18 @@
+{
+  "baseline": {
+    "annualized_return": 0.46114852970960296,
+    "average_turnover": 0.3443227494314729,
+    "max_drawdown": -0.35585001384660264,
+    "recommended_strategy": "long_only",
+    "signal_gate_active_rate": 0.21100917431192662,
+    "weekly_sharpe_ratio": 1.5605120372558312
+  },
+  "generated_at_utc": "2026-02-26T23:27:44+00:00",
+  "promotion_thresholds": {
+    "annualized_return_min_relative_improvement": 0.05,
+    "average_turnover_max": 0.4,
+    "max_drawdown_max_worsening": 0.05,
+    "weekly_sharpe_max_drop": 0.05
+  },
+  "schema_version": "signal_stack_promotion_v1"
+}

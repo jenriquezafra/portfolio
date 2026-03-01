@@ -24,13 +24,13 @@
     "mkt_nasdaq_proxy_lag1",
     "mkt_growth_proxy_lag1"
   ],
-  "live_date": "2026-02-23",
+  "live_date": "2026-02-26",
   "market_context_enabled": true,
   "market_context_fallback_applied": true,
-  "market_context_fallback_max_days": 3,
+  "market_context_fallback_max_days": 5,
   "market_context_last_date": "2026-02-20",
   "market_context_live_allow_stale_fallback": true,
-  "market_context_stale_business_days": 1,
+  "market_context_stale_business_days": 4,
   "model_params": {
     "colsample_bytree": 0.75,
     "learning_rate": 0.03,
@@ -41,10 +41,10 @@
     "subsample": 0.75
   },
   "n_live_assets": 50,
-  "n_train_rows": 114656,
-  "prices_last_date": "2026-02-23",
+  "n_train_rows": 114806,
+  "prices_last_date": "2026-02-26",
   "target_column": "fwd_return_15d_resid",
-  "train_end_date": "2026-01-30",
+  "train_end_date": "2026-02-04",
   "train_start_date": "2016-04-05",
   "training_target_transform": "cross_sectional_rank"
 }

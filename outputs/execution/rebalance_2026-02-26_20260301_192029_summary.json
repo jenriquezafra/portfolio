@@ -1,0 +1,31 @@
+{
+  "account_cash": 3601.7249450683594,
+  "account_equity": 97605.57518005371,
+  "allow_shorting": false,
+  "apply": false,
+  "broker": "paper",
+  "broker_order_ids": [],
+  "max_gross_exposure": 1.0,
+  "max_net_exposure": 1.0,
+  "max_position_weight": 0.2,
+  "min_cash_buffer": 0.02,
+  "mode": "paper",
+  "n_orders": 26,
+  "n_symbols": 50,
+  "orders_file": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/execution/rebalance_2026-02-26_20260301_192029_orders.csv",
+  "orders_file_latest": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/execution/rebalance_latest_orders.csv",
+  "portfolio_mode": "long_only",
+  "portfolio_turnover_estimate": 0.2541635266630351,
+  "rebalance_date": "2026-02-26",
+  "timestamp_utc": "2026-03-01T19:20:29+00:00",
+  "weights_source_meta": {
+    "backtest_rebalance_date": "2026-01-14",
+    "latest_clean_prices_date": "2026-02-26",
+    "live_signal_date": "2026-02-26",
+    "recommendation_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/run_all/recommendation.json",
+    "recommended_strategy": "long_only",
+    "signal_age_business_days": 0,
+    "weights_csv": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/run_all/recommended_weights_long_only_2026-02-26.csv",
+    "weights_source": "run_all"
+  }
+}

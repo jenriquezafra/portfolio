@@ -9,75 +9,90 @@
     "predictions_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/models/predictions_oos.parquet",
     "raw_prices_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/data/raw/prices.parquet",
     "recommended_weights_backtest_csv": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/run_all/recommended_weights_backtest_long_only_2026-01-14.csv",
-    "recommended_weights_csv": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/run_all/recommended_weights_long_only_2026-02-23.csv",
+    "recommended_weights_csv": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/run_all/recommended_weights_long_only_2026-02-26.csv",
     "train_summary_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/models/train_summary.json",
     "training_log_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/models/training_log.parquet",
     "weights_history_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/backtests/weights_history.parquet"
   },
   "backtest_weights_snapshot": {
-    "gross_exposure": 0.8184455240555071,
+    "gross_exposure": 0.5999999999999999,
     "n_positions": 50,
-    "net_exposure": 0.8184455240555071,
+    "net_exposure": 0.5999999999999999,
     "top_longs": [
       {
         "ticker": "NVDA",
-        "weight": 0.1365080868951155
+        "weight": 0.09519947748027924
       },
       {
         "ticker": "GOOGL",
-        "weight": 0.08119623135745263
+        "weight": 0.06698608142217463
       },
       {
         "ticker": "ORCL",
-        "weight": 0.05457340327079881
+        "weight": 0.0433753815349994
       },
       {
         "ticker": "TEAM",
-        "weight": 0.05283681099190119
-      },
-      {
-        "ticker": "TSM",
-        "weight": 0.0489314818594261
+        "weight": 0.04220623127618161
       },
       {
         "ticker": "KLAC",
-        "weight": 0.048537413526988094
+        "weight": 0.04189452065786088
       },
       {
         "ticker": "INTU",
-        "weight": 0.04536569587164849
+        "weight": 0.04029309779003217
       },
       {
-        "ticker": "NFLX",
-        "weight": 0.04258965551637382
+        "ticker": "INTC",
+        "weight": 0.039429428170287384
       },
       {
         "ticker": "LRCX",
-        "weight": 0.039738507196474024
+        "weight": 0.032642912806817165
       },
       {
-        "ticker": "FTNT",
-        "weight": 0.03819577692828163
+        "ticker": "MU",
+        "weight": 0.031520774887600814
+      },
+      {
+        "ticker": "NFLX",
+        "weight": 0.030816439057235055
       }
     ],
     "top_shorts": []
   },
-  "generated_at_utc": "2026-02-23T22:27:48+00:00",
+  "generated_at_utc": "2026-02-26T23:27:44+00:00",
   "ibkr_used": false,
-  "live_signal_date": "2026-02-23",
+  "live_signal_date": "2026-02-26",
   "live_weights_summary": {
     "allocation_method": "mean_variance",
-    "gross_exposure": 0.9788468045219537,
-    "live_date": "2026-02-23",
+    "gross_exposure": 0.8102725034395296,
+    "live_date": "2026-02-26",
     "n_positions": 50,
-    "net_exposure": 0.9788468045219537,
+    "net_exposure": 0.8102725034395296,
     "portfolio_mode": "long_only",
+    "signal_composite": 0.8661986608440462,
     "signal_gate_metric": "oos_cs_ic_spearman",
-    "signal_gate_metric_value": 0.03375469587356375,
-    "signal_gate_multiplier": 1.0,
+    "signal_gate_metric_value": 0.01787684794272499,
+    "signal_gate_multiplier": 0.6,
     "signal_gate_threshold": 0.02,
+    "signal_liquidity_component": 0.0,
+    "signal_model_component": 0.8661986608440462,
+    "signal_momentum_component": 0.0,
     "signal_quality_gate_enabled": true,
-    "turnover": 0.3500000000000001,
+    "signal_reversal_component": 0.0,
+    "signal_stack_enabled": false,
+    "signal_stack_normalize_weights": true,
+    "signal_stack_weights": {
+      "liquidity_impulse": 0.0,
+      "model_prediction": 1.0,
+      "momentum_residual": 0.0,
+      "reversal_regime": 0.0,
+      "vol_compression_breakout": 0.0
+    },
+    "signal_vol_breakout_component": 0.0,
+    "turnover": 0.35,
     "turnover_cap_applied": true,
     "used_existing_positions": true
   },
@@ -108,13 +123,13 @@
       "mkt_nasdaq_proxy_lag1",
       "mkt_growth_proxy_lag1"
     ],
-    "live_date": "2026-02-23",
+    "live_date": "2026-02-26",
     "market_context_enabled": true,
     "market_context_fallback_applied": true,
-    "market_context_fallback_max_days": 3,
+    "market_context_fallback_max_days": 5,
     "market_context_last_date": "2026-02-20",
     "market_context_live_allow_stale_fallback": true,
-    "market_context_stale_business_days": 1,
+    "market_context_stale_business_days": 4,
     "model_params": {
       "colsample_bytree": 0.75,
       "learning_rate": 0.03,
@@ -125,79 +140,81 @@
       "subsample": 0.75
     },
     "n_live_assets": 50,
-    "n_train_rows": 114656,
-    "prices_last_date": "2026-02-23",
+    "n_train_rows": 114806,
+    "prices_last_date": "2026-02-26",
     "target_column": "fwd_return_15d_resid",
-    "train_end_date": "2026-01-30",
+    "train_end_date": "2026-02-04",
     "train_start_date": "2016-04-05",
     "training_target_transform": "cross_sectional_rank"
   },
   "rebalance_date": "2026-01-14",
   "recommended_strategy": "long_only",
   "strategy_scores": {
-    "long_only": 1.2859334088631174,
-    "market_neutral": 0.8807136422632263
+    "long_only": 1.2851452017815879,
+    "market_neutral": 0.9091370784057952
   },
   "strategy_summaries": {
     "long_only": {
       "allocation_method": "mean_variance",
-      "annualized_return": 0.458941547756786,
-      "annualized_volatility": 0.3113242799417723,
-      "average_gross_exposure": 0.8985191366951141,
-      "average_net_exposure": 0.8985191366951141,
+      "annualized_return": 0.46114852970960296,
+      "annualized_volatility": 0.31202353427933743,
+      "average_gross_exposure": 0.8984463761227307,
+      "average_net_exposure": 0.8984463761227307,
       "average_overlay_leverage": 1.0,
-      "average_signal_gate_multiplier": 0.9192660550458713,
-      "average_turnover": 0.3464290499731242,
+      "average_signal_gate_multiplier": 0.9155963302752289,
+      "average_turnover": 0.3443227494314729,
       "beta_neutralization_enabled": false,
-      "end_date": "2026-02-23",
-      "max_drawdown": -0.3543857696681071,
+      "end_date": "2026-02-26",
+      "max_drawdown": -0.35585001384660264,
       "max_overlay_leverage": 1.0,
       "min_overlay_leverage": 1.0,
       "min_signal_gate_multiplier": 0.6,
-      "n_days": 2186,
+      "n_days": 2189,
       "n_rebalances": 109,
       "portfolio_mode": "long_only",
       "risk_overlay_enabled": false,
-      "sharpe_ratio": 1.4741591881064429,
-      "signal_gate_active_rate": 0.2018348623853211,
+      "sharpe_ratio": 1.4779286786001282,
+      "signal_gate_active_rate": 0.21100917431192662,
       "signal_quality_gate_enabled": true,
       "signal_rank_zscore": true,
+      "signal_stack_enabled": false,
       "start_date": "2017-06-13",
-      "total_cost_bps_paid": 264.3253651294936,
-      "total_return": 25.482782965722265,
-      "weekly_sharpe_ratio": 1.5604359841437416
+      "total_cost_bps_paid": 262.7182578162137,
+      "total_return": 25.953732383452166,
+      "weekly_sharpe_ratio": 1.5605120372558312
     },
     "market_neutral": {
       "allocation_method": "score_over_vol",
-      "annualized_return": 0.05371537663112069,
-      "annualized_volatility": 0.05751443549286894,
-      "average_gross_exposure": 0.635834117932204,
-      "average_net_exposure": 1.2334043063137848e-18,
+      "annualized_return": 0.055213981052612215,
+      "annualized_volatility": 0.057708973937610875,
+      "average_gross_exposure": 0.64535297192588,
+      "average_net_exposure": -1.5512048513680222e-18,
       "average_overlay_leverage": 1.0,
-      "average_signal_gate_multiplier": 0.9192660550458713,
+      "average_signal_gate_multiplier": 0.9155963302752289,
       "average_turnover": 0.35,
       "beta_neutralization_enabled": false,
-      "end_date": "2026-02-23",
-      "max_drawdown": -0.09035083545300393,
+      "end_date": "2026-02-26",
+      "max_drawdown": -0.09176385406086374,
       "max_overlay_leverage": 1.0,
       "min_overlay_leverage": 1.0,
       "min_signal_gate_multiplier": 0.6,
-      "n_days": 2186,
+      "n_days": 2189,
       "n_rebalances": 109,
       "portfolio_mode": "market_neutral",
       "risk_overlay_enabled": false,
-      "sharpe_ratio": 0.933945994093617,
-      "signal_gate_active_rate": 0.2018348623853211,
+      "sharpe_ratio": 0.9567659461820271,
+      "signal_gate_active_rate": 0.21100917431192662,
       "signal_quality_gate_enabled": true,
       "signal_rank_zscore": true,
+      "signal_stack_enabled": false,
       "start_date": "2017-06-13",
       "total_cost_bps_paid": 267.0499999999999,
-      "total_return": 0.574402473880109,
-      "weekly_sharpe_ratio": 0.9706642270803291
+      "total_return": 0.5949525151835218,
+      "weekly_sharpe_ratio": 1.0000767762483997
     }
   },
   "train_summary": {
-    "avg_validation_ic_spearman": 0.041005326892612146,
+    "avg_validation_ic_spearman": 0.040655551441450076,
     "date_end": "2026-01-14",
     "date_start": "2017-06-12",
     "features": [
@@ -237,16 +254,16 @@
     },
     "n_predictions": 5136,
     "n_rebalances": 109,
-    "oos_cs_ic_ir": 0.2841906241155544,
-    "oos_cs_ic_mean": 0.053493603567088356,
+    "oos_cs_ic_ir": 0.2974210059805798,
+    "oos_cs_ic_mean": 0.05624544950443225,
     "oos_cs_ic_median": 0.032907636761979005,
-    "oos_cs_ic_positive_rate": 0.6055045871559633,
-    "oos_cs_ic_std": 0.18823141591517595,
-    "oos_ic_spearman": 0.0409539396537132,
-    "oos_top_bottom_mean": 0.009968746884235432,
-    "oos_top_bottom_median": 0.012810856274569014,
-    "oos_top_bottom_positive_rate": 0.5779816513761468,
-    "oos_top_bottom_tstat": 2.1487297302606825,
+    "oos_cs_ic_positive_rate": 0.6146788990825688,
+    "oos_cs_ic_std": 0.1891105482579963,
+    "oos_ic_spearman": 0.03925246091198653,
+    "oos_top_bottom_mean": 0.012309001956819339,
+    "oos_top_bottom_median": 0.015558712788347372,
+    "oos_top_bottom_positive_rate": 0.5871559633027523,
+    "oos_top_bottom_tstat": 2.6296665317003813,
     "rebalance_every_n_days": 20,
     "rebalance_frequency": "every_n_days",
     "target_column": "fwd_return_15d_resid",
@@ -256,49 +273,49 @@
     "validation_window_days": 252
   },
   "weights_snapshot": {
-    "gross_exposure": 0.9788468045219537,
+    "gross_exposure": 0.8102725034395296,
     "n_positions": 50,
-    "net_exposure": 0.9788468045219537,
+    "net_exposure": 0.8102725034395296,
     "top_longs": [
       {
-        "ticker": "ORCL",
-        "weight": 0.1609253346765101
+        "ticker": "AAPL",
+        "weight": 0.14084090092274545
       },
       {
-        "ticker": "AAPL",
-        "weight": 0.1608605032474771
+        "ticker": "ORCL",
+        "weight": 0.1262584109212623
       },
       {
         "ticker": "PANW",
-        "weight": 0.1215444704279722
-      },
-      {
-        "ticker": "GOOGL",
-        "weight": 0.07866379892615147
+        "weight": 0.08401479396856726
       },
       {
         "ticker": "TSM",
-        "weight": 0.07359904316153157
+        "weight": 0.07146486140773613
+      },
+      {
+        "ticker": "GOOGL",
+        "weight": 0.06930136549387833
       },
       {
         "ticker": "MSFT",
-        "weight": 0.07000854411895642
+        "weight": 0.06916769695050592
       },
       {
         "ticker": "DDOG",
-        "weight": 0.0524994230342899
+        "weight": 0.04795207412358456
       },
       {
-        "ticker": "TEAM",
-        "weight": 0.032135064030813836
+        "ticker": "META",
+        "weight": 0.023388685749828605
       },
       {
-        "ticker": "AMD",
-        "weight": 0.02811222214221213
+        "ticker": "NOW",
+        "weight": 0.020751654806556476
       },
       {
-        "ticker": "ASML",
-        "weight": 0.026345866395341415
+        "ticker": "MCHP",
+        "weight": 0.018761625791614868
       }
     ],
     "top_shorts": []

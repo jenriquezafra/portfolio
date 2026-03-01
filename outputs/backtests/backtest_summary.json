@@ -1,28 +1,69 @@
 {
   "allocation_method": "mean_variance",
-  "annualized_return": 0.458941547756786,
-  "annualized_volatility": 0.3113242799417723,
-  "average_gross_exposure": 0.8985191366951141,
-  "average_net_exposure": 0.8985191366951141,
+  "annualized_return": 0.4625886823026826,
+  "annualized_volatility": 0.31110786030736076,
+  "average_gross_exposure": 0.8988263213519218,
+  "average_net_exposure": 0.8988263213519218,
   "average_overlay_leverage": 1.0,
-  "average_signal_gate_multiplier": 0.9192660550458713,
-  "average_turnover": 0.3464290499731242,
+  "average_signal_gate_multiplier": 0.9155963302752289,
+  "average_turnover": 0.3447058676056192,
   "beta_neutralization_enabled": false,
-  "end_date": "2026-02-23",
-  "max_drawdown": -0.3543857696681071,
+  "end_date": "2026-02-26",
+  "max_drawdown": -0.352664731961846,
   "max_overlay_leverage": 1.0,
   "min_overlay_leverage": 1.0,
   "min_signal_gate_multiplier": 0.6,
-  "n_days": 2186,
+  "n_days": 2189,
   "n_rebalances": 109,
   "portfolio_mode": "long_only",
   "risk_overlay_enabled": false,
-  "sharpe_ratio": 1.4741591881064429,
-  "signal_gate_active_rate": 0.2018348623853211,
+  "sharpe_ratio": 1.4869077298325586,
+  "signal_gate_active_rate": 0.21100917431192662,
   "signal_quality_gate_enabled": true,
   "signal_rank_zscore": true,
+  "signal_stack_contribution_stats": {
+    "signal_composite": {
+      "max": 0.9002111418720347,
+      "mean": 0.793865114795558,
+      "median": 0.8066850136341159
+    },
+    "signal_liquidity_component": {
+      "max": 0.06045710895702159,
+      "mean": 0.060366903168225086,
+      "median": 0.0604213799648171
+    },
+    "signal_model_component": {
+      "max": 0.8811457114049287,
+      "mean": 0.7913797138886502,
+      "median": 0.8058242407868772
+    },
+    "signal_momentum_component": {
+      "max": 0.0,
+      "mean": 0.0,
+      "median": 0.0
+    },
+    "signal_reversal_component": {
+      "max": 0.0,
+      "mean": 0.0,
+      "median": 0.0
+    },
+    "signal_vol_breakout_component": {
+      "max": 0.0,
+      "mean": 0.0,
+      "median": 0.0
+    }
+  },
+  "signal_stack_enabled": true,
+  "signal_stack_normalize_weights": true,
+  "signal_stack_weights": {
+    "liquidity_impulse": 0.06976744186046512,
+    "model_prediction": 0.9302325581395349,
+    "momentum_residual": 0.0,
+    "reversal_regime": 0.0,
+    "vol_compression_breakout": 0.0
+  },
   "start_date": "2017-06-13",
-  "total_cost_bps_paid": 264.3253651294936,
-  "total_return": 25.482782965722265,
-  "weekly_sharpe_ratio": 1.5604359841437416
+  "total_cost_bps_paid": 263.0105769830874,
+  "total_return": 26.185377898109678,
+  "weekly_sharpe_ratio": 1.5671593115643236
 }
