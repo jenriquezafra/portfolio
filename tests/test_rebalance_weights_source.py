@@ -56,3 +56,27 @@ def test_load_target_weights_from_run_all_recommendation(tmp_path: Path) -> None
     assert float(target.loc["MSFT"]) == 0.60
     assert meta["weights_source"] == "run_all"
     assert meta["recommended_strategy"] == "long_only"
+
+
+def test_effective_turnover_cap_skips_when_no_open_positions() -> None:
+    module = _load_rebalance_module()
+    current_qty = pd.Series({"AAPL": 0.0, "MSFT": 0.0}, dtype=float)
+
+    effective, applied = module._effective_turnover_cap(
+        max_turnover=0.35,
+        current_qty=current_qty,
+    )
+    assert effective is None
+    assert applied is False
+
+
+def test_effective_turnover_cap_applies_when_positions_exist() -> None:
+    module = _load_rebalance_module()
+    current_qty = pd.Series({"AAPL": 5.0, "MSFT": 0.0}, dtype=float)
+
+    effective, applied = module._effective_turnover_cap(
+        max_turnover=0.35,
+        current_qty=current_qty,
+    )
+    assert effective == 0.35
+    assert applied is True
