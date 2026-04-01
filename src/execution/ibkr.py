@@ -92,15 +92,17 @@ class IBKRBroker(BrokerBase):
         self._ib = None
         self._Stock = None
         self._MarketOrder = None
+        self._LimitOrder = None
 
     def connect(self) -> None:
         try:
-            from ib_insync import IB, MarketOrder, Stock
+            from ib_insync import IB, LimitOrder, MarketOrder, Stock
         except Exception as exc:
             raise RuntimeError("ib_insync is required for IBKR execution.") from exc
 
         self._Stock = Stock
         self._MarketOrder = MarketOrder
+        self._LimitOrder = LimitOrder
         self._ib = IB()
         self._ib.connect(host=self.host, port=self.port, clientId=self.client_id, timeout=10)
 
@@ -188,6 +190,7 @@ class IBKRBroker(BrokerBase):
         ib = self._ib
         Stock = self._Stock
         MarketOrder = self._MarketOrder
+        LimitOrder = self._LimitOrder
 
         broker_ids: list[str] = []
         for req in orders:
@@ -198,7 +201,15 @@ class IBKRBroker(BrokerBase):
             action = "BUY" if qty > 0 else "SELL"
             contract = Stock(req.symbol, "SMART", "USD")
             ib.qualifyContracts(contract)
-            order = MarketOrder(action, abs(qty), tif=req.tif)
+            order_type = str(req.order_type or "MKT").strip().upper()
+            if order_type == "MKT":
+                order = MarketOrder(action, abs(qty), tif=req.tif)
+            elif order_type == "LMT":
+                if req.limit_price is None or float(req.limit_price) <= 0:
+                    raise ValueError(f"LMT order for {req.symbol} requires positive `limit_price`.")
+                order = LimitOrder(action, abs(qty), float(req.limit_price), tif=req.tif)
+            else:
+                raise ValueError(f"Unsupported IBKR order_type: {order_type}")
             trade = ib.placeOrder(contract, order)
             broker_ids.append(str(trade.order.orderId))
         return broker_ids

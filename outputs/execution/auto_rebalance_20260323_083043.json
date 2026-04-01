@@ -1,0 +1,28 @@
+{
+  "action": "skipped_not_due",
+  "apply": true,
+  "clean_prices_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/data/processed/prices_clean.parquet",
+  "cycle_command": null,
+  "cycle_report_path": null,
+  "forced": false,
+  "last_applied_rebalance": {
+    "broker": "ibkr",
+    "n_orders": 20,
+    "rebalance_date": "2026-03-02",
+    "summary_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/execution/rebalance_2026-03-02_20260302_231456_summary.json",
+    "timestamp_utc": "2026-03-02T23:15:01+00:00"
+  },
+  "latest_clean_prices_date": "2026-03-02",
+  "project_root": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio",
+  "rebalance_every_n_days": 20,
+  "schedule": {
+    "business_days_since_last_applied": 0,
+    "due": false,
+    "next_due_date": "2026-03-30",
+    "reason": "cadence_not_due",
+    "remaining_business_days": 20
+  },
+  "skip_run_all": false,
+  "status": "ok",
+  "timestamp_utc": "2026-03-23T08:30:43+00:00"
+}

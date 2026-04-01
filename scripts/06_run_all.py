@@ -274,9 +274,16 @@ def _load_prev_weights_from_paper_state(
     clean_prices: pd.DataFrame,
     as_of_date: pd.Timestamp,
 ) -> tuple[pd.Series, bool]:
-    mode = str(execution_cfg.get("execution", {}).get("mode", "paper")).lower()
+    execution_section = execution_cfg.get("execution", {})
+    if not isinstance(execution_section, dict):
+        return pd.Series(dtype=float), False
+
+    broker = str(execution_section.get("broker", "paper")).lower()
+    mode = str(execution_section.get("mode", "paper")).lower()
     paper_cfg = execution_cfg.get("paper", {})
-    if mode != "paper" or not isinstance(paper_cfg, dict):
+    # paper_state is only a valid source of previous holdings when paper broker is active.
+    # When broker is ibkr, using paper_state would incorrectly constrain live allocations.
+    if broker != "paper" or mode != "paper" or not isinstance(paper_cfg, dict):
         return pd.Series(dtype=float), False
 
     state_rel = paper_cfg.get("state_path")

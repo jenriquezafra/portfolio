@@ -94,6 +94,38 @@ def _parse_bool(value: Any, *, default: bool) -> bool:
     return bool(value)
 
 
+def _parse_order_type(value: Any) -> str:
+    normalized = str(value or "MKT").strip().upper()
+    if normalized not in {"MKT", "LMT"}:
+        raise ValueError(f"Unsupported `execution.order_type`: {value!r}. Use `MKT` or `LMT`.")
+    return normalized
+
+
+def _compute_limit_price(
+    *,
+    side: str,
+    reference_price: float,
+    limit_price_offset_bps: float,
+    limit_price_round_decimals: int,
+) -> float:
+    if reference_price <= 0:
+        raise ValueError(f"Cannot compute limit price from non-positive reference price: {reference_price}")
+    offset = float(limit_price_offset_bps) / 10000.0
+    if side == "BUY":
+        price = float(reference_price) * (1.0 + offset)
+    elif side == "SELL":
+        price = float(reference_price) * (1.0 - offset)
+    else:
+        raise ValueError(f"Unsupported side for limit price: {side!r}")
+    rounded = round(float(price), int(limit_price_round_decimals))
+    if rounded <= 0:
+        raise ValueError(
+            "Computed non-positive limit price. "
+            f"reference={reference_price} offset_bps={limit_price_offset_bps} side={side}"
+        )
+    return float(rounded)
+
+
 def _load_target_weights(weights_path: Path, as_of_date: str | None) -> tuple[pd.Timestamp, pd.Series]:
     weights = pd.read_parquet(weights_path)
     weights["rebalance_date"] = pd.to_datetime(weights["rebalance_date"], utc=False).dt.tz_localize(None)
@@ -141,7 +173,7 @@ def _load_target_weights_from_run_all(
     if signal_date_raw is None:
         raise ValueError(
             "Recommendation file does not include `live_signal_date`. "
-            "Re-run scripts/05_run_all.py to generate live recommendation artifacts."
+            "Re-run scripts/06_run_all.py to generate live recommendation artifacts."
         )
     signal_date = pd.Timestamp(signal_date_raw).tz_localize(None)
 
@@ -262,10 +294,12 @@ def _prepare_target_weights(
     investable_fraction = max(0.0, 1.0 - float(min_cash_buffer))
 
     if portfolio_mode == "long_only":
+        target = target.clip(lower=0.0)
         total = float(target.sum())
-        if total > 1e-12:
-            target = target / total
-        target = target.clip(lower=0.0) * investable_fraction
+        if total > investable_fraction + 1e-12 and total > 1e-12:
+            # Only scale down when requested longs exceed allowed invested fraction.
+            # Keep partial-cash recommendations unchanged to avoid unintended concentration.
+            target = target * (investable_fraction / total)
         return target
 
     if portfolio_mode == "market_neutral":
@@ -294,12 +328,16 @@ def _compute_target_shares(
 def _make_order_requests(
     current_qty: pd.Series,
     target_qty: pd.Series,
+    prices: dict[str, float],
     order_type: str,
     tif: str,
+    limit_price_offset_bps: float,
+    limit_price_round_decimals: int,
 ) -> tuple[pd.DataFrame, list[OrderRequest]]:
     symbols = sorted(set(current_qty.index).union(set(target_qty.index)))
     rows: list[dict[str, Any]] = []
     requests: list[OrderRequest] = []
+    order_type_normalized = _parse_order_type(order_type)
 
     for sym in symbols:
         cur = int(round(float(current_qty.get(sym, 0.0))))
@@ -308,6 +346,16 @@ def _make_order_requests(
         if delta == 0:
             continue
         side = "BUY" if delta > 0 else "SELL"
+        limit_price: float | None = None
+        if order_type_normalized == "LMT":
+            if sym not in prices:
+                raise ValueError(f"Missing price for limit order symbol: {sym}")
+            limit_price = _compute_limit_price(
+                side=side,
+                reference_price=float(prices[sym]),
+                limit_price_offset_bps=limit_price_offset_bps,
+                limit_price_round_decimals=limit_price_round_decimals,
+            )
         rows.append(
             {
                 "ticker": sym,
@@ -315,11 +363,20 @@ def _make_order_requests(
                 "target_qty": tgt,
                 "delta_qty": delta,
                 "side": side,
-                "order_type": order_type,
+                "order_type": order_type_normalized,
                 "tif": tif,
+                "limit_price": limit_price,
             }
         )
-        requests.append(OrderRequest(symbol=sym, quantity=int(delta), order_type=order_type, tif=tif))
+        requests.append(
+            OrderRequest(
+                symbol=sym,
+                quantity=int(delta),
+                order_type=order_type_normalized,
+                tif=tif,
+                limit_price=limit_price,
+            )
+        )
 
     orders_df = pd.DataFrame(rows).sort_values(["side", "ticker"]).reset_index(drop=True) if rows else pd.DataFrame()
     return orders_df, requests
@@ -380,8 +437,14 @@ def main() -> None:
     portfolio_mode = str(portfolio_cfg.get("mode", "long_only")).lower()
     allow_shorting = portfolio_mode == "market_neutral"
 
-    order_type = str(execution_section.get("order_type", "MKT"))
+    order_type = _parse_order_type(execution_section.get("order_type", "MKT"))
     tif = str(execution_section.get("tif", "DAY"))
+    limit_price_offset_bps = float(execution_section.get("limit_price_offset_bps", 10.0))
+    limit_price_round_decimals = int(execution_section.get("limit_price_round_decimals", 2))
+    if limit_price_offset_bps < 0:
+        raise ValueError("`execution.limit_price_offset_bps` must be >= 0.")
+    if limit_price_round_decimals < 0:
+        raise ValueError("`execution.limit_price_round_decimals` must be >= 0.")
     min_cash_buffer = float(risk_controls.get("min_cash_buffer", 0.0))
     max_turnover = risk_controls.get("max_turnover_per_rebalance")
     max_turnover = None if max_turnover is None else float(max_turnover)
@@ -506,8 +569,11 @@ def main() -> None:
         orders_df, requests = _make_order_requests(
             current_qty=current_qty,
             target_qty=target_qty,
+            prices=prices,
             order_type=order_type,
             tif=tif,
+            limit_price_offset_bps=limit_price_offset_bps,
+            limit_price_round_decimals=limit_price_round_decimals,
         )
 
         if not orders_df.empty:
@@ -565,6 +631,10 @@ def main() -> None:
             "min_cash_buffer": min_cash_buffer,
             "portfolio_mode": portfolio_mode,
             "allow_shorting": allow_shorting,
+            "order_type": order_type,
+            "tif": tif,
+            "limit_price_offset_bps": limit_price_offset_bps,
+            "limit_price_round_decimals": limit_price_round_decimals,
             "orders_file": str(orders_path),
             "orders_file_latest": str(latest_orders_path),
             "broker_order_ids": broker_ids,

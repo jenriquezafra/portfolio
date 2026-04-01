@@ -1,0 +1,28 @@
+{
+  "applied_rebalances": 4,
+  "avg_orders_per_rebalance": 20.0,
+  "avg_target_weight_gross": 0.8024495765025591,
+  "dry_run_rebalances": 20,
+  "equity_change_abs": 296.0599999999977,
+  "equity_change_pct": 0.00296059999999998,
+  "equity_end": 100296.06,
+  "equity_start": 100000.0,
+  "first_rebalance_date": "2026-02-09",
+  "first_timestamp_utc": "2026-02-22T15:03:48Z",
+  "generated_at_utc": "2026-03-03T17:17:08+00:00",
+  "last_rebalance_date": "2026-03-02",
+  "last_timestamp_utc": "2026-03-02T23:15:01Z",
+  "latest_estimated_cash_after_fraction": 0.2824813357573569,
+  "latest_possible_underinvestment_reasons": [
+    "target_weights_below_investable_fraction",
+    "signal_quality_gate_de_risking",
+    "live_recommendation_used_existing_positions"
+  ],
+  "latest_pre_cash_fraction": 1.0086544775537545,
+  "latest_run_all_signal_gate_multiplier": 0.6,
+  "latest_run_all_turnover_cap_applied": true,
+  "latest_run_all_used_existing_positions": true,
+  "latest_target_weight_gross": 0.753460940162105,
+  "n_rows": 24,
+  "status": "ok"
+}

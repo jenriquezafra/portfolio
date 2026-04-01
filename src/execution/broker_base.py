@@ -24,6 +24,7 @@ class OrderRequest:
     quantity: int
     order_type: str = "MKT"
     tif: str = "DAY"
+    limit_price: float | None = None
 
 
 class BrokerBase(ABC):

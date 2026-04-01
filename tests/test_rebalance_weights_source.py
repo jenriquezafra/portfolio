@@ -80,3 +80,26 @@ def test_effective_turnover_cap_applies_when_positions_exist() -> None:
     )
     assert effective == 0.35
     assert applied is True
+
+
+def test_make_order_requests_lmt_uses_configured_offset() -> None:
+    module = _load_rebalance_module()
+    current_qty = pd.Series({"AAPL": 0.0}, dtype=float)
+    target_qty = pd.Series({"AAPL": 10.0}, dtype=float)
+    prices = {"AAPL": 100.0}
+
+    orders_df, requests = module._make_order_requests(
+        current_qty=current_qty,
+        target_qty=target_qty,
+        prices=prices,
+        order_type="LMT",
+        tif="GTC",
+        limit_price_offset_bps=10.0,
+        limit_price_round_decimals=2,
+    )
+
+    assert len(requests) == 1
+    assert requests[0].order_type == "LMT"
+    assert requests[0].tif == "GTC"
+    assert requests[0].limit_price == 100.10
+    assert float(orders_df.iloc[0]["limit_price"]) == 100.10

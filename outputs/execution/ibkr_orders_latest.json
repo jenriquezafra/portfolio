@@ -1,0 +1,426 @@
+{
+  "account": "DU9782002",
+  "all_open_orders_count": 0,
+  "client_id": 101,
+  "executions_total_count": 21,
+  "host": "127.0.0.1",
+  "orders": [
+    {
+      "action": "BOT",
+      "avg_fill_price": 263.18,
+      "execution_avg_price": 263.18,
+      "execution_filled_qty": 47.0,
+      "executions_count": 1,
+      "filled_qty": 47.0,
+      "last_execution_time": "2026-03-03 14:30:07+00:00",
+      "order_id": 105,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "AAPL",
+      "total_qty": 47.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 350.42,
+      "execution_avg_price": 350.42,
+      "execution_filled_qty": 3.0,
+      "executions_count": 1,
+      "filled_qty": 3.0,
+      "last_execution_time": "2026-03-03 14:30:14+00:00",
+      "order_id": 107,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "AMAT",
+      "total_qty": 3.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 203.6,
+      "execution_avg_price": 203.6,
+      "execution_filled_qty": 4.0,
+      "executions_count": 1,
+      "filled_qty": 4.0,
+      "last_execution_time": "2026-03-03 14:30:22+00:00",
+      "order_id": 109,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "AMZN",
+      "total_qty": 4.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 106.67999999999999,
+      "execution_avg_price": 106.67999999999999,
+      "execution_filled_qty": 53.0,
+      "executions_count": 1,
+      "filled_qty": 53.0,
+      "last_execution_time": "2026-03-03 14:30:16+00:00",
+      "order_id": 111,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "DDOG",
+      "total_qty": 53.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 297.23,
+      "execution_avg_price": 297.23,
+      "execution_filled_qty": 11.0,
+      "executions_count": 1,
+      "filled_qty": 11.0,
+      "last_execution_time": "2026-03-03 14:30:31+00:00",
+      "order_id": 113,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "GOOGL",
+      "total_qty": 11.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 221.51,
+      "execution_avg_price": 221.51,
+      "execution_filled_qty": 18.0,
+      "executions_count": 1,
+      "filled_qty": 18.0,
+      "last_execution_time": "2026-03-03 14:30:54+00:00",
+      "order_id": 115,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "LRCX",
+      "total_qty": 18.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 72.21,
+      "execution_avg_price": 72.21,
+      "execution_filled_qty": 9.0,
+      "executions_count": 1,
+      "filled_qty": 9.0,
+      "last_execution_time": "2026-03-03 14:30:22+00:00",
+      "order_id": 117,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "MCHP",
+      "total_qty": 9.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 235.12,
+      "execution_avg_price": 235.12,
+      "execution_filled_qty": 1.0,
+      "executions_count": 1,
+      "filled_qty": 1.0,
+      "last_execution_time": "2026-03-03 14:30:22+00:00",
+      "order_id": 119,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "MDB",
+      "total_qty": 1.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 649.06,
+      "execution_avg_price": 649.06,
+      "execution_filled_qty": 2.0,
+      "executions_count": 1,
+      "filled_qty": 2.0,
+      "last_execution_time": "2026-03-03 14:30:00+00:00",
+      "order_id": 121,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "META",
+      "total_qty": 2.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 396.04,
+      "execution_avg_price": 396.04,
+      "execution_filled_qty": 22.0,
+      "executions_count": 1,
+      "filled_qty": 22.0,
+      "last_execution_time": "2026-03-03 14:30:09+00:00",
+      "order_id": 123,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "MSFT",
+      "total_qty": 22.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 96.91000000000001,
+      "execution_avg_price": 96.91000000000001,
+      "execution_filled_qty": 24.0,
+      "executions_count": 2,
+      "filled_qty": 24.0,
+      "last_execution_time": "2026-03-03 14:32:58+00:00",
+      "order_id": 125,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "NFLX",
+      "total_qty": 24.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 108.81999999999998,
+      "execution_avg_price": 108.81999999999998,
+      "execution_filled_qty": 10.0,
+      "executions_count": 1,
+      "filled_qty": 10.0,
+      "last_execution_time": "2026-03-03 14:30:08+00:00",
+      "order_id": 127,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "NOW",
+      "total_qty": 10.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 63.99,
+      "execution_avg_price": 63.99,
+      "execution_filled_qty": 1.0,
+      "executions_count": 1,
+      "filled_qty": 1.0,
+      "last_execution_time": "2026-03-03 14:30:23+00:00",
+      "order_id": 129,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "ON",
+      "total_qty": 1.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 145.78,
+      "execution_avg_price": 145.78,
+      "execution_filled_qty": 56.0,
+      "executions_count": 1,
+      "filled_qty": 56.0,
+      "last_execution_time": "2026-03-03 14:34:05+00:00",
+      "order_id": 131,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "ORCL",
+      "total_qty": 56.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 150.15,
+      "execution_avg_price": 150.15,
+      "execution_filled_qty": 56.0,
+      "executions_count": 1,
+      "filled_qty": 56.0,
+      "last_execution_time": "2026-03-03 14:30:13+00:00",
+      "order_id": 133,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "PANW",
+      "total_qty": 56.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 165.32,
+      "execution_avg_price": 165.32,
+      "execution_filled_qty": 21.0,
+      "executions_count": 1,
+      "filled_qty": 21.0,
+      "last_execution_time": "2026-03-03 14:30:12+00:00",
+      "order_id": 135,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "SNOW",
+      "total_qty": 21.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 71.46,
+      "execution_avg_price": 71.46,
+      "execution_filled_qty": 37.0,
+      "executions_count": 1,
+      "filled_qty": 37.0,
+      "last_execution_time": "2026-03-03 14:30:19+00:00",
+      "order_id": 137,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "TEAM",
+      "total_qty": 37.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 348.56,
+      "execution_avg_price": 348.56,
+      "execution_filled_qty": 8.0,
+      "executions_count": 1,
+      "filled_qty": 8.0,
+      "last_execution_time": "2026-03-03 14:30:15+00:00",
+      "order_id": 139,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "TSM",
+      "total_qty": 8.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 205.65,
+      "execution_avg_price": 205.65,
+      "execution_filled_qty": 10.0,
+      "executions_count": 1,
+      "filled_qty": 10.0,
+      "last_execution_time": "2026-03-03 14:30:23+00:00",
+      "order_id": 141,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "TXN",
+      "total_qty": 10.0
+    },
+    {
+      "action": "BOT",
+      "avg_fill_price": 146.55,
+      "execution_avg_price": 146.55,
+      "execution_filled_qty": 18.0,
+      "executions_count": 1,
+      "filled_qty": 18.0,
+      "last_execution_time": "2026-03-03 14:30:23+00:00",
+      "order_id": 143,
+      "remaining_qty": 0.0,
+      "source": "executions_only",
+      "status": "ExecutionFound",
+      "symbol": "ZS",
+      "total_qty": 18.0
+    }
+  ],
+  "port": 4002,
+  "positions_nonzero": [
+    {
+      "avg_cost": 263.2012766,
+      "quantity": 47.0,
+      "symbol": "AAPL"
+    },
+    {
+      "avg_cost": 350.75333335,
+      "quantity": 3.0,
+      "symbol": "AMAT"
+    },
+    {
+      "avg_cost": 203.85,
+      "quantity": 4.0,
+      "symbol": "AMZN"
+    },
+    {
+      "avg_cost": 106.6988679,
+      "quantity": 53.0,
+      "symbol": "DDOG"
+    },
+    {
+      "avg_cost": 297.3209091,
+      "quantity": 11.0,
+      "symbol": "GOOGL"
+    },
+    {
+      "avg_cost": 221.56555555,
+      "quantity": 18.0,
+      "symbol": "LRCX"
+    },
+    {
+      "avg_cost": 72.3211111,
+      "quantity": 9.0,
+      "symbol": "MCHP"
+    },
+    {
+      "avg_cost": 236.12,
+      "quantity": 1.0,
+      "symbol": "MDB"
+    },
+    {
+      "avg_cost": 649.56,
+      "quantity": 2.0,
+      "symbol": "META"
+    },
+    {
+      "avg_cost": 396.08545455,
+      "quantity": 22.0,
+      "symbol": "MSFT"
+    },
+    {
+      "avg_cost": 96.95166665,
+      "quantity": 24.0,
+      "symbol": "NFLX"
+    },
+    {
+      "avg_cost": 108.92,
+      "quantity": 10.0,
+      "symbol": "NOW"
+    },
+    {
+      "avg_cost": 64.6329,
+      "quantity": 1.0,
+      "symbol": "ON"
+    },
+    {
+      "avg_cost": 145.79785715,
+      "quantity": 56.0,
+      "symbol": "ORCL"
+    },
+    {
+      "avg_cost": 150.16785715,
+      "quantity": 56.0,
+      "symbol": "PANW"
+    },
+    {
+      "avg_cost": 165.36761905,
+      "quantity": 21.0,
+      "symbol": "SNOW"
+    },
+    {
+      "avg_cost": 71.48702705,
+      "quantity": 37.0,
+      "symbol": "TEAM"
+    },
+    {
+      "avg_cost": 348.685,
+      "quantity": 8.0,
+      "symbol": "TSM"
+    },
+    {
+      "avg_cost": 205.75,
+      "quantity": 10.0,
+      "symbol": "TXN"
+    },
+    {
+      "avg_cost": 146.60555555,
+      "quantity": 18.0,
+      "symbol": "ZS"
+    }
+  ],
+  "positions_nonzero_count": 20,
+  "readonly": true,
+  "source_counts": {
+    "executions_only": 20
+  },
+  "status": "ok",
+  "status_counts": {
+    "ExecutionFound": 20
+  },
+  "summary_apply": true,
+  "summary_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/execution/rebalance_latest_summary.json",
+  "summary_rebalance_date": "2026-03-02",
+  "target_order_ids_count": 20,
+  "timestamp_utc": "2026-03-03T14:42:44+00:00"
+}

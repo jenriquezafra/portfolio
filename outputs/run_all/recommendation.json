@@ -9,76 +9,76 @@
     "predictions_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/models/predictions_oos.parquet",
     "raw_prices_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/data/raw/prices.parquet",
     "recommended_weights_backtest_csv": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/run_all/recommended_weights_backtest_long_only_2026-01-14.csv",
-    "recommended_weights_csv": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/run_all/recommended_weights_long_only_2026-02-26.csv",
+    "recommended_weights_csv": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/run_all/recommended_weights_long_only_2026-03-02.csv",
     "train_summary_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/models/train_summary.json",
     "training_log_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/models/training_log.parquet",
     "weights_history_path": "/Users/jenriquezafra/Proyectos/Dev/python/portfolio/outputs/backtests/weights_history.parquet"
   },
   "backtest_weights_snapshot": {
-    "gross_exposure": 0.5999999999999999,
+    "gross_exposure": 0.6,
     "n_positions": 50,
-    "net_exposure": 0.5999999999999999,
+    "net_exposure": 0.6,
     "top_longs": [
       {
         "ticker": "NVDA",
-        "weight": 0.09519947748027924
+        "weight": 0.09599720269457318
       },
       {
         "ticker": "GOOGL",
-        "weight": 0.06698608142217463
-      },
-      {
-        "ticker": "ORCL",
-        "weight": 0.0433753815349994
-      },
-      {
-        "ticker": "TEAM",
-        "weight": 0.04220623127618161
+        "weight": 0.058688468195691304
       },
       {
         "ticker": "KLAC",
-        "weight": 0.04189452065786088
+        "weight": 0.04180788721550989
       },
       {
-        "ticker": "INTU",
-        "weight": 0.04029309779003217
+        "ticker": "ORCL",
+        "weight": 0.04108085023634665
       },
       {
         "ticker": "INTC",
-        "weight": 0.039429428170287384
+        "weight": 0.04023059828964631
+      },
+      {
+        "ticker": "INTU",
+        "weight": 0.03986826330510126
+      },
+      {
+        "ticker": "TEAM",
+        "weight": 0.03955965506286187
+      },
+      {
+        "ticker": "TSM",
+        "weight": 0.034458691541276676
       },
       {
         "ticker": "LRCX",
-        "weight": 0.032642912806817165
+        "weight": 0.03223514226566857
       },
       {
         "ticker": "MU",
-        "weight": 0.031520774887600814
-      },
-      {
-        "ticker": "NFLX",
-        "weight": 0.030816439057235055
+        "weight": 0.031594678698282724
       }
     ],
     "top_shorts": []
   },
-  "generated_at_utc": "2026-02-26T23:27:44+00:00",
+  "generated_at_utc": "2026-03-02T22:44:38+00:00",
   "ibkr_used": false,
-  "live_signal_date": "2026-02-26",
+  "live_signal_date": "2026-03-02",
   "live_weights_summary": {
     "allocation_method": "mean_variance",
-    "gross_exposure": 0.8102725034395296,
-    "live_date": "2026-02-26",
+    "gross_exposure": 0.7534609401621062,
+    "live_date": "2026-03-02",
     "n_positions": 50,
-    "net_exposure": 0.8102725034395296,
+    "net_exposure": 0.7534609401621062,
     "portfolio_mode": "long_only",
-    "signal_composite": 0.8661986608440462,
+    "signal_composite": 0.8661986608440465,
     "signal_gate_metric": "oos_cs_ic_spearman",
-    "signal_gate_metric_value": 0.01787684794272499,
+    "signal_gate_metric_value": 0.01709637056763434,
     "signal_gate_multiplier": 0.6,
     "signal_gate_threshold": 0.02,
     "signal_liquidity_component": 0.0,
-    "signal_model_component": 0.8661986608440462,
+    "signal_model_component": 0.8661986608440465,
     "signal_momentum_component": 0.0,
     "signal_quality_gate_enabled": true,
     "signal_reversal_component": 0.0,
@@ -92,7 +92,7 @@
       "vol_compression_breakout": 0.0
     },
     "signal_vol_breakout_component": 0.0,
-    "turnover": 0.35,
+    "turnover": 0.3499999999999999,
     "turnover_cap_applied": true,
     "used_existing_positions": true
   },
@@ -123,13 +123,13 @@
       "mkt_nasdaq_proxy_lag1",
       "mkt_growth_proxy_lag1"
     ],
-    "live_date": "2026-02-26",
+    "live_date": "2026-03-02",
     "market_context_enabled": true,
     "market_context_fallback_applied": true,
-    "market_context_fallback_max_days": 5,
-    "market_context_last_date": "2026-02-20",
+    "market_context_fallback_max_days": 3,
+    "market_context_last_date": "2026-02-27",
     "market_context_live_allow_stale_fallback": true,
-    "market_context_stale_business_days": 4,
+    "market_context_stale_business_days": 1,
     "model_params": {
       "colsample_bytree": 0.75,
       "learning_rate": 0.03,
@@ -140,81 +140,81 @@
       "subsample": 0.75
     },
     "n_live_assets": 50,
-    "n_train_rows": 114806,
-    "prices_last_date": "2026-02-26",
+    "n_train_rows": 114906,
+    "prices_last_date": "2026-03-02",
     "target_column": "fwd_return_15d_resid",
-    "train_end_date": "2026-02-04",
+    "train_end_date": "2026-02-06",
     "train_start_date": "2016-04-05",
     "training_target_transform": "cross_sectional_rank"
   },
   "rebalance_date": "2026-01-14",
   "recommended_strategy": "long_only",
   "strategy_scores": {
-    "long_only": 1.2851452017815879,
-    "market_neutral": 0.9091370784057952
+    "long_only": 1.2770976519558275,
+    "market_neutral": 0.8099337289823548
   },
   "strategy_summaries": {
     "long_only": {
       "allocation_method": "mean_variance",
-      "annualized_return": 0.46114852970960296,
-      "annualized_volatility": 0.31202353427933743,
-      "average_gross_exposure": 0.8984463761227307,
-      "average_net_exposure": 0.8984463761227307,
+      "annualized_return": 0.449794390847829,
+      "annualized_volatility": 0.3075202420268058,
+      "average_gross_exposure": 0.888994293910598,
+      "average_net_exposure": 0.888994293910598,
       "average_overlay_leverage": 1.0,
-      "average_signal_gate_multiplier": 0.9155963302752289,
-      "average_turnover": 0.3443227494314729,
+      "average_signal_gate_multiplier": 0.9045871559633024,
+      "average_turnover": 0.3449256479219096,
       "beta_neutralization_enabled": false,
-      "end_date": "2026-02-26",
-      "max_drawdown": -0.35585001384660264,
+      "end_date": "2026-03-02",
+      "max_drawdown": -0.354040496525001,
       "max_overlay_leverage": 1.0,
       "min_overlay_leverage": 1.0,
       "min_signal_gate_multiplier": 0.6,
-      "n_days": 2189,
+      "n_days": 2191,
       "n_rebalances": 109,
       "portfolio_mode": "long_only",
       "risk_overlay_enabled": false,
-      "sharpe_ratio": 1.4779286786001282,
-      "signal_gate_active_rate": 0.21100917431192662,
+      "sharpe_ratio": 1.4626497035880375,
+      "signal_gate_active_rate": 0.23853211009174313,
       "signal_quality_gate_enabled": true,
       "signal_rank_zscore": true,
       "signal_stack_enabled": false,
       "start_date": "2017-06-13",
-      "total_cost_bps_paid": 262.7182578162137,
-      "total_return": 25.953732383452166,
-      "weekly_sharpe_ratio": 1.5605120372558312
+      "total_cost_bps_paid": 263.1782693644169,
+      "total_return": 24.262112519066918,
+      "weekly_sharpe_ratio": 1.5512438264597699
     },
     "market_neutral": {
       "allocation_method": "score_over_vol",
-      "annualized_return": 0.055213981052612215,
-      "annualized_volatility": 0.057708973937610875,
-      "average_gross_exposure": 0.64535297192588,
-      "average_net_exposure": -1.5512048513680222e-18,
+      "annualized_return": 0.050478089254229364,
+      "annualized_volatility": 0.058380679318460964,
+      "average_gross_exposure": 0.6408095303317758,
+      "average_net_exposure": -8.617417909475383e-18,
       "average_overlay_leverage": 1.0,
-      "average_signal_gate_multiplier": 0.9155963302752289,
-      "average_turnover": 0.35,
+      "average_signal_gate_multiplier": 0.9045871559633024,
+      "average_turnover": 0.35000000000000003,
       "beta_neutralization_enabled": false,
-      "end_date": "2026-02-26",
-      "max_drawdown": -0.09176385406086374,
+      "end_date": "2026-03-02",
+      "max_drawdown": -0.09806498338757941,
       "max_overlay_leverage": 1.0,
       "min_overlay_leverage": 1.0,
       "min_signal_gate_multiplier": 0.6,
-      "n_days": 2189,
+      "n_days": 2191,
       "n_rebalances": 109,
       "portfolio_mode": "market_neutral",
       "risk_overlay_enabled": false,
-      "sharpe_ratio": 0.9567659461820271,
-      "signal_gate_active_rate": 0.21100917431192662,
+      "sharpe_ratio": 0.8646368943204011,
+      "signal_gate_active_rate": 0.23853211009174313,
       "signal_quality_gate_enabled": true,
       "signal_rank_zscore": true,
       "signal_stack_enabled": false,
       "start_date": "2017-06-13",
       "total_cost_bps_paid": 267.0499999999999,
-      "total_return": 0.5949525151835218,
-      "weekly_sharpe_ratio": 1.0000767762483997
+      "total_return": 0.5344334918085754,
+      "weekly_sharpe_ratio": 0.9052842173536604
     }
   },
   "train_summary": {
-    "avg_validation_ic_spearman": 0.040655551441450076,
+    "avg_validation_ic_spearman": 0.04000397805869076,
     "date_end": "2026-01-14",
     "date_start": "2017-06-12",
     "features": [
@@ -254,16 +254,16 @@
     },
     "n_predictions": 5136,
     "n_rebalances": 109,
-    "oos_cs_ic_ir": 0.2974210059805798,
-    "oos_cs_ic_mean": 0.05624544950443225,
-    "oos_cs_ic_median": 0.032907636761979005,
-    "oos_cs_ic_positive_rate": 0.6146788990825688,
-    "oos_cs_ic_std": 0.1891105482579963,
-    "oos_ic_spearman": 0.03925246091198653,
-    "oos_top_bottom_mean": 0.012309001956819339,
-    "oos_top_bottom_median": 0.015558712788347372,
-    "oos_top_bottom_positive_rate": 0.5871559633027523,
-    "oos_top_bottom_tstat": 2.6296665317003813,
+    "oos_cs_ic_ir": 0.258887301817908,
+    "oos_cs_ic_mean": 0.049610463956300976,
+    "oos_cs_ic_median": 0.038334760110450394,
+    "oos_cs_ic_positive_rate": 0.5963302752293578,
+    "oos_cs_ic_std": 0.19162957629801092,
+    "oos_ic_spearman": 0.03740805280870514,
+    "oos_top_bottom_mean": 0.010631614151401,
+    "oos_top_bottom_median": 0.01110344182307402,
+    "oos_top_bottom_positive_rate": 0.5779816513761468,
+    "oos_top_bottom_tstat": 2.227980592808157,
     "rebalance_every_n_days": 20,
     "rebalance_frequency": "every_n_days",
     "target_column": "fwd_return_15d_resid",
@@ -273,49 +273,49 @@
     "validation_window_days": 252
   },
   "weights_snapshot": {
-    "gross_exposure": 0.8102725034395296,
+    "gross_exposure": 0.7534609401621062,
     "n_positions": 50,
-    "net_exposure": 0.8102725034395296,
+    "net_exposure": 0.7534609401621062,
     "top_longs": [
       {
         "ticker": "AAPL",
-        "weight": 0.14084090092274545
-      },
-      {
-        "ticker": "ORCL",
-        "weight": 0.1262584109212623
-      },
-      {
-        "ticker": "PANW",
-        "weight": 0.08401479396856726
-      },
-      {
-        "ticker": "TSM",
-        "weight": 0.07146486140773613
-      },
-      {
-        "ticker": "GOOGL",
-        "weight": 0.06930136549387833
+        "weight": 0.12500402548338144
       },
       {
         "ticker": "MSFT",
-        "weight": 0.06916769695050592
+        "weight": 0.09095066181146089
+      },
+      {
+        "ticker": "PANW",
+        "weight": 0.08413546618793946
+      },
+      {
+        "ticker": "ORCL",
+        "weight": 0.08366810218153294
       },
       {
         "ticker": "DDOG",
-        "weight": 0.04795207412358456
+        "weight": 0.05781315240616665
       },
       {
-        "ticker": "META",
-        "weight": 0.023388685749828605
+        "ticker": "LRCX",
+        "weight": 0.04178182131610209
       },
       {
-        "ticker": "NOW",
-        "weight": 0.020751654806556476
+        "ticker": "SNOW",
+        "weight": 0.035800609976172494
       },
       {
-        "ticker": "MCHP",
-        "weight": 0.018761625791614868
+        "ticker": "GOOGL",
+        "weight": 0.034786560147664576
+      },
+      {
+        "ticker": "TSM",
+        "weight": 0.03165491091242581
+      },
+      {
+        "ticker": "TEAM",
+        "weight": 0.02744657358815613
       }
     ],
     "top_shorts": []

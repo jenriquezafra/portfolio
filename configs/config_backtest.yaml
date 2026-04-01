@@ -55,8 +55,8 @@ backtest:
     metric: oos_cs_ic_spearman
     lookback_rebalances: 20
     min_history_rebalances: 8
-    threshold: 0.02
-    bad_state_multiplier: 0.6
+    threshold: 0.0
+    bad_state_multiplier: 0.9
   signal_stack:
     enabled: false
     normalize_weights: true

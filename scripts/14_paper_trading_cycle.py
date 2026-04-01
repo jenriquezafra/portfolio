@@ -33,7 +33,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--skip-run-all",
         action="store_true",
-        help="Skip running 05_run_all.py and use existing recommendation file.",
+        help="Skip running 06_run_all.py and use existing recommendation file.",
     )
     parser.add_argument(
         "--apply",
@@ -98,7 +98,7 @@ def main() -> None:
         _run_cmd(
             [
                 sys.executable,
-                str((PROJECT_ROOT / "scripts/05_run_all.py").resolve()),
+                str((PROJECT_ROOT / "scripts/06_run_all.py").resolve()),
                 "--config-data",
                 str(config_data),
                 "--config-model",

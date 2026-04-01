@@ -281,15 +281,15 @@ portfolio/
     03_backtest.py
     04_rebalance.py
     05_report.py
-    06_compare_portfolio_modes.py
-    07_sweep_target_holding.py
-    08_tune_market_neutral.py
-    09_optimize_long_only_return.py
-    10_compare_alpha_v2.py
-    11_tune_alpha_v2_metrics.py
-    12_optimize_drawdown_holdout.py
-    13_paper_trading_cycle.py
-    14_check_ibkr_connection.py
+    07_compare_portfolio_modes.py
+    08_sweep_target_holding.py
+    09_tune_market_neutral.py
+    10_optimize_long_only_return.py
+    11_compare_alpha_v2.py
+    12_tune_alpha_v2_metrics.py
+    13_optimize_drawdown_holdout.py
+    14_paper_trading_cycle.py
+    15_check_ibkr_connection.py
   src/
     data.py
     features.py
@@ -341,7 +341,7 @@ IBKR paper setup checklist:
 4. Run connection smoke test (no orders):
 
 ```bash
-python scripts/14_check_ibkr_connection.py --symbols SPY,QQQ
+python scripts/15_check_ibkr_connection.py --symbols SPY,QQQ
 ```
 
 `IBKR_MARKET_DATA_TYPE` supports: `live`, `frozen`, `delayed`, `delayed_frozen` (or `1..4`).
@@ -391,6 +391,8 @@ Key behavior:
 - Also updates stable latest files:
   - `outputs/execution/rebalance_latest_orders.csv`
   - `outputs/execution/rebalance_latest_summary.json`
+- In `long_only`, if target weights sum below invested fraction, remaining cash is intentionally kept as cash
+  (common causes: `signal_quality_gate` de-risking and/or turnover cap from the recommendation source).
 
 ---
 
@@ -402,7 +404,7 @@ Run the full pipeline and get both:
 - Live weights (latest market date with available features).
 
 ```bash
-python scripts/05_run_all.py
+python scripts/06_run_all.py
 ```
 
 Key outputs:
@@ -416,6 +418,8 @@ In `recommendation.json`:
 - `rebalance_date`: latest OOS backtest rebalance date.
 - `live_signal_date`: latest live signal date.
 - `artifacts.recommended_weights_csv`: live weights file to use for paper start/updates.
+- `live_weights_summary.used_existing_positions`: `true` only when paper broker state is used as previous holdings.
+  If `execution.broker=ibkr`, `run_all` no longer uses `paper_state` as previous portfolio context.
 
 Market-context freshness (live mode):
 
@@ -431,26 +435,103 @@ Market-context freshness (live mode):
 
 One command for operational paper tests:
 
-1. Run full pipeline (`05_run_all.py`)
+1. Run full pipeline (`06_run_all.py`)
 2. Rebalance from live recommendation (`04_rebalance.py --weights-source run_all`)
 3. Save cycle report with artifacts and checks
 
 Dry-run cycle:
 
 ```bash
-python scripts/13_paper_trading_cycle.py
+python scripts/14_paper_trading_cycle.py
 ```
 
 Apply to broker configured in `config_execution.yaml`:
 
 ```bash
-python scripts/13_paper_trading_cycle.py --apply
+python scripts/14_paper_trading_cycle.py --apply
 ```
 
 Output report:
 
 - `outputs/paper_cycle/paper_cycle_<timestamp>.json`
 - Stable latest report: `outputs/paper_cycle/paper_cycle_latest.json`
+
+---
+
+# 14.3 Execution History (Monitoring)
+
+Build a consolidated historical view of rebalance runs:
+
+```bash
+python scripts/17_execution_history.py
+```
+
+Outputs:
+
+- `outputs/execution/rebalance_history.csv`
+- `outputs/execution/rebalance_history_summary.json`
+
+Useful fields include:
+
+- Pre-rebalance equity/cash by run.
+- Target gross/net weights from recommendation artifacts.
+- Planned buy/sell/net notional and estimated cash after orders.
+- Flags from `run_all` context (`signal_gate_multiplier`, turnover cap, existing positions usage).
+
+---
+
+# 14.4 Daily Dashboard (CSV + Chart)
+
+Build a daily monitoring dashboard from execution history:
+
+```bash
+python scripts/18_execution_dashboard.py
+```
+
+Outputs:
+
+- `outputs/execution/dashboard_daily.csv`
+- `outputs/execution/dashboard_daily.png`
+
+Default dashboard tracks:
+
+- Equity pre-rebalance and equity index.
+- Target gross exposure vs investable target.
+- Cash before rebalance and estimated cash after planned orders.
+
+---
+
+# 14.5 Auto Rebalance By Cadence
+
+Run the operational cycle only when rebalance cadence is due:
+
+```bash
+python scripts/19_auto_rebalance_if_due.py
+```
+
+How due-status is computed:
+
+- Reads `backtest.rebalance_every_n_days` from `configs/config_backtest.yaml`.
+- Uses latest clean prices date from `data.output_clean_path`.
+- Uses latest applied rebalance (`apply=true`) from `outputs/execution/rebalance_*_summary.json`.
+- Executes `scripts/14_paper_trading_cycle.py` only when due (or when forced).
+
+Useful flags:
+
+- `--apply`: sends orders when due.
+- `--force`: executes cycle even if cadence is not due.
+- `--skip-run-all`: uses existing recommendation artifacts.
+
+Decision report outputs:
+
+- `outputs/execution/auto_rebalance_latest.json`
+- `outputs/execution/auto_rebalance_<timestamp>.json`
+
+Example daily cron (08:45 local time):
+
+```bash
+45 8 * * 1-5 cd /Users/jenriquezafra/Proyectos/Dev/python/portfolio && .venv/bin/python scripts/19_auto_rebalance_if_due.py >> outputs/execution/auto_rebalance_cron.log 2>&1
+```
 
 ---
 
@@ -467,7 +548,7 @@ Optimize long-only return with automated sweep on:
 Run:
 
 ```bash
-python scripts/09_optimize_long_only_return.py \
+python scripts/10_optimize_long_only_return.py \
   --baseline-config-data configs/config_data.core25.yaml \
   --baseline-config-backtest configs/config_backtest.market_neutral_tuned_exec.yaml \
   --baseline-config-execution configs/config_execution.market_neutral_tuned_exec.yaml \
@@ -499,7 +580,7 @@ Alpha V2 includes:
 Baseline vs Alpha V2 comparison:
 
 ```bash
-python scripts/10_compare_alpha_v2.py \
+python scripts/11_compare_alpha_v2.py \
   --config-data configs/config_data.yaml \
   --config-execution configs/config_execution.yaml \
   --baseline-model configs/config_model.baseline_v1.yaml \
@@ -528,7 +609,7 @@ Default holdout:
 Run:
 
 ```bash
-python scripts/12_optimize_drawdown_holdout.py \
+python scripts/13_optimize_drawdown_holdout.py \
   --holdout-start 2024-01-01 \
   --max-weekly-sharpe-drop 0.0 \
   --max-sharpe-drop 0.0 \
@@ -589,7 +670,7 @@ And `outputs/backtests/backtest_summary.json` includes:
 Tune signal-stack weights:
 
 ```bash
-python scripts/14_tune_signal_stack.py
+python scripts/16_tune_signal_stack.py
 ```
 
 Main outputs:
@@ -603,7 +684,7 @@ Main outputs:
 Freeze a dated baseline snapshot bundle (metrics schema + config bundle):
 
 ```bash
-python scripts/05_run_all.py --snapshot-baseline
+python scripts/06_run_all.py --snapshot-baseline
 ```
 
 Baseline snapshots are stored under:

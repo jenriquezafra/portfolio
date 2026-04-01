@@ -1,94 +1,94 @@
 {
-  "cash": 3601.7249450683594,
-  "last_updated": "2026-02-22T15:04:18+00:00",
+  "cash": 6047.124702453613,
+  "last_updated": "2026-03-02T20:54:54+00:00",
   "positions": {
     "AAPL": {
-      "avg_cost": 274.6199951171875,
-      "quantity": 61.0
+      "avg_cost": 273.84878355084044,
+      "quantity": 66.0
     },
     "AMAT": {
-      "avg_cost": 330.1582336425781,
-      "quantity": 1.0
+      "avg_cost": 358.0160827636719,
+      "quantity": 3.0
     },
     "AMZN": {
       "avg_cost": 208.72000122070312,
-      "quantity": 14.0
+      "quantity": 9.0
     },
     "ARM": {
       "avg_cost": 124.61000061035156,
-      "quantity": 2.0
-    },
-    "AVGO": {
-      "avg_cost": 343.94000244140625,
-      "quantity": 1.0
-    },
-    "CRWD": {
-      "avg_cost": 408.0400085449219,
       "quantity": 1.0
     },
     "DDOG": {
-      "avg_cost": 114.01000213623047,
-      "quantity": 34.0
+      "avg_cost": 112.89868192852668,
+      "quantity": 53.0
     },
     "GOOGL": {
       "avg_cost": 324.32000732421875,
-      "quantity": 38.0
+      "quantity": 24.0
     },
     "LRCX": {
-      "avg_cost": 229.27999877929688,
-      "quantity": 1.0
+      "avg_cost": 231.14300537109375,
+      "quantity": 10.0
+    },
+    "MCHP": {
+      "avg_cost": 74.51000213623047,
+      "quantity": 6.0
     },
     "MDB": {
       "avg_cost": 357.7699890136719,
-      "quantity": 4.0
+      "quantity": 2.0
     },
     "META": {
       "avg_cost": 677.219970703125,
       "quantity": 6.0
     },
     "MSFT": {
-      "avg_cost": 412.65814208984375,
-      "quantity": 23.0
+      "avg_cost": 410.09061649867465,
+      "quantity": 28.0
     },
     "MU": {
       "avg_cost": 383.5,
-      "quantity": 3.0
+      "quantity": 2.0
     },
-    "NET": {
-      "avg_cost": 173.75,
-      "quantity": 1.0
+    "NFLX": {
+      "avg_cost": 97.58000183105469,
+      "quantity": 10.0
     },
     "NOW": {
       "avg_cost": 103.87000274658203,
-      "quantity": 32.0
+      "quantity": 22.0
     },
     "NVDA": {
       "avg_cost": 190.0399932861328,
-      "quantity": 2.0
+      "quantity": 1.0
     },
     "ORCL": {
       "avg_cost": 156.58999633789062,
-      "quantity": 100.0
+      "quantity": 63.0
     },
     "PANW": {
-      "avg_cost": 166.0,
-      "quantity": 79.0
-    },
-    "PLTR": {
-      "avg_cost": 142.91000366210938,
-      "quantity": 1.0
+      "avg_cost": 164.5632183908046,
+      "quantity": 87.0
     },
     "SNOW": {
-      "avg_cost": 175.9499969482422,
-      "quantity": 3.0
+      "avg_cost": 171.557856968471,
+      "quantity": 14.0
+    },
+    "TEAM": {
+      "avg_cost": 74.06999969482422,
+      "quantity": 21.0
     },
     "TSM": {
       "avg_cost": 355.4100036621094,
-      "quantity": 21.0
+      "quantity": 13.0
+    },
+    "TXN": {
+      "avg_cost": 209.71499633789062,
+      "quantity": 6.0
     },
     "ZS": {
       "avg_cost": 170.17999267578125,
-      "quantity": 12.0
+      "quantity": 7.0
     }
   }
 }

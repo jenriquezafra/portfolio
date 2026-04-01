@@ -1,10 +1,12 @@
 execution:
   mode: paper
-  broker: paper
+  broker: ibkr
   account_currency: USD
   rebalance_time_ny: '15:45'
-  order_type: MKT
-  tif: DAY
+  order_type: LMT
+  tif: GTC
+  limit_price_offset_bps: 10
+  limit_price_round_decimals: 2
 paper:
   initial_cash: 100000
   state_path: outputs/execution/paper_state.json
@@ -19,7 +21,7 @@ ibkr:
 risk_controls:
   max_position_weight: 0.2
   max_gross_exposure: 1.0
-  max_turnover_per_rebalance: 0.35
-  min_cash_buffer: 0.02
+  max_turnover_per_rebalance: 0.6
+  min_cash_buffer: 0.005
   reject_if_missing_prices: true
   kill_switch_enabled: true

@@ -1,21 +1,21 @@
 {
   "account": "DU9782002",
-  "cash": 482985.6,
+  "cash": 38052.65,
   "checked_symbols": [
     "SPY",
     "QQQ"
   ],
   "client_id": 101,
-  "equity": 1038869.72,
+  "equity": 99079.34,
   "host": "127.0.0.1",
   "market_data_type": "delayed",
   "port": 4002,
-  "positions_count": 2,
+  "positions_count": 20,
   "prices": {
-    "QQQ": 605.38,
-    "SPY": 683.69
+    "QQQ": 596.27,
+    "SPY": 675.13
   },
   "readonly": false,
   "status": "ok",
-  "timestamp_utc": "2026-03-01T19:21:28+00:00"
+  "timestamp_utc": "2026-03-03T14:41:49+00:00"
 }
